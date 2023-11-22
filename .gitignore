@@ -10,5 +10,11 @@ out/
 # Docs
 docs/
 
+# Mac files
+.DS_Store
+
 # Dotenv file
 .env
+**/artifacts/
+compiler_config.json
+.deps/
