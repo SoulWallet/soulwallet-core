@@ -70,6 +70,9 @@ abstract contract ValidatorManager is Authority, IValidatorManager, IERC1271 {
         returns (bytes4 magicValue)
     {
         address validator = address(bytes20(signature[0:20]));
+        if (_validatorMapping().isExist(validator) == false) {
+            return bytes4(0);
+        }
         try IValidator(validator).isValidSignature(hash, signature) returns (bytes4 _magicValue) {
             return _magicValue;
         } catch {
