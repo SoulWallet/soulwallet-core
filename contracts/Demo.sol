@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {LightAccount} from "./LightAccount.sol";
-import {IModule} from "./interface/IModule.sol";
 
 contract SoulWallet is LightAccount {
     constructor(address _entryPoint) LightAccount(_entryPoint) {}
@@ -10,8 +9,8 @@ contract SoulWallet is LightAccount {
     /**
      * demo: disable ModuleManager demo
      */
-    function installModule(IModule module, bytes calldata data) external pure override {
-        (module, data);
+    function installModule(address module, bytes4[] calldata selectors) external pure override {
+        (module, selectors);
         revert("disabled");
     }
 }

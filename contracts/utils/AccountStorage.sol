@@ -6,7 +6,7 @@ pragma solidity ^0.8.20;
  * @notice A library that defines the storage layout for the SoulWallet account or contract.
  */
 library AccountStorage {
-    bytes32 private constant _ACCOUNT_SLOT = keccak256("soulwallet.contracts.AccountStorage");
+    bytes32 internal constant _ACCOUNT_SLOT = keccak256("soulwallet.contracts.AccountStorage");
 
     struct Layout {
         // ┌───────────────────┐
@@ -16,8 +16,8 @@ library AccountStorage {
         // └───────────────────┘
 
         // ┌───────────────────┐
-        // │      EIP1271      │
-        mapping(bytes32 => uint256) approvedHashes;
+        // │     base data     │
+        mapping(address => address) validators;
         // └───────────────────┘
 
         // ┌───────────────────┐
@@ -29,10 +29,6 @@ library AccountStorage {
         // ┌───────────────────┐
         // │       Plugin      │
         mapping(address => address) plugins;
-        mapping(address => address) guardHookPlugins;
-        mapping(address => address) preHookPlugins;
-        mapping(address => address) postHookPlugins;
-        mapping(address => mapping(bytes32 => bytes)) pluginDataBytes;
     }
 
     /**

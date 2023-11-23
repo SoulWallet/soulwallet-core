@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IModule} from "./IModule.sol";
-
 interface IModuleManager {
-    function installModule(IModule module, bytes calldata data) external;
-    function uninstallModule(IModule module, bytes calldata data) external;
+    function installModule(address module, bytes4[] calldata selectors) external;
+    function uninstallModule(address module) external;
 
     /**
      * @notice Provides a list of all added modules and their respective authorized function selectors
