@@ -22,13 +22,18 @@ library SignatureDecoder {
 
             ...
      */
-    function decodeValidatorSignature(bytes calldata self)
+    function signatureSplit(bytes calldata self)
         internal
         pure
-        returns (address validator, bytes calldata validatorSignature)
+        returns (address validator, bytes calldata validatorSignature, bytes calldata hookSignature)
     {
         validator = address(bytes20(self[0:20]));
         uint32 validatorSignatureLength = uint32(bytes4(self[20:24]));
-        validatorSignature = self[24:24 + validatorSignatureLength];
+        uint256 hookSignatureStartAt;
+        unchecked {
+            hookSignatureStartAt = 24 + validatorSignatureLength;
+        }
+        validatorSignature = self[24:hookSignatureStartAt];
+        hookSignature = self[hookSignatureStartAt:];
     }
 }

@@ -7,7 +7,6 @@ import {IValidator} from "../interface/IValidator.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
-import {SignatureDecoder} from "../utils/SignatureDecoder.sol";
 
 abstract contract ValidatorManager is Authority, IValidatorManager {
     using AddressLinkedList for mapping(address => address);
@@ -24,8 +23,8 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         validator = AccountStorage.layout().validators;
     }
 
-    function _installValidator(IValidator validator) internal virtual {
-        try validator.supportsInterface(INTERFACE_ID_VALIDATOR) returns (bool supported) {
+    function _installValidator(address validator) internal virtual {
+        try IValidator(validator).supportsInterface(INTERFACE_ID_VALIDATOR) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_VALIDATOR();
             } else {
@@ -36,19 +35,20 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         }
     }
 
-    function _uninstallValidator(IValidator validator) internal virtual {
+    function _uninstallValidator(address validator) internal virtual {
         _validatorMapping().remove(address(validator));
     }
 
-    function _cleanValidator(IValidator validator) internal virtual {
-        _validatorMapping().remove(address(validator));
-    }
-
-    function installValidator(IValidator validator) external virtual override onlySelfOrModule {
+    function _resetValidator(address validator) internal virtual {
+        _validatorMapping().clear();
         _installValidator(validator);
     }
 
-    function uninstallValidator(IValidator validator) external virtual override onlySelfOrModule {
+    function installValidator(address validator) external virtual override onlySelfOrModule {
+        _installValidator(validator);
+    }
+
+    function uninstallValidator(address validator) external virtual override onlySelfOrModule {
         _uninstallValidator(validator);
     }
 
@@ -57,37 +57,28 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         validators = validator.list(AddressLinkedList.SENTINEL_ADDRESS, validator.size());
     }
 
-    /**
-     * @dev Should return whether the signature provided is valid for the provided data
-     * @param hash      Hash of the data to be signed
-     * @param signature Signature byte array associated with _data
-     */
-    function _isValidSignature(bytes32 hash, bytes calldata signature)
+    function _isValidSignature(bytes32 hash, address validator, bytes calldata validatorSignature)
         internal
         view
         virtual
         returns (bytes4 magicValue)
     {
-        address validator = address(bytes20(signature[0:20]));
         if (_validatorMapping().isExist(validator) == false) {
             return bytes4(0);
         }
-        try IValidator(validator).isValidSignature(hash, signature) returns (bytes4 _magicValue) {
+        try IValidator(validator).isValidSignature(hash, validatorSignature) returns (bytes4 _magicValue) {
             return _magicValue;
         } catch {
             return bytes4(0);
         }
     }
 
-    function _validateUserOp(UserOperation calldata userOp, bytes32 userOpHash)
-        internal
-        view
-        virtual
-        returns (uint256 validationData)
-    {
-        (address validator, bytes calldata validatorSignature) =
-            SignatureDecoder.decodeValidatorSignature(userOp.signature);
-
+    function _validateUserOp(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        address validator,
+        bytes calldata validatorSignature
+    ) internal view virtual returns (uint256 validationData) {
         if (_validatorMapping().isExist(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }

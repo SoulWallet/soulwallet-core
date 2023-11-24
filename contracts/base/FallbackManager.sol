@@ -6,13 +6,13 @@ import {IFallbackManager} from "../interface/IFallbackManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 
 abstract contract FallbackManager is IFallbackManager, Authority {
-    receive() external payable {}
+    receive() external payable virtual {}
 
     /**
      * @dev Sets the address of the fallback handler contract
      * @param fallbackContract The address of the new fallback handler contract
      */
-    function _setFallbackHandler(address fallbackContract) internal {
+    function _setFallbackHandler(address fallbackContract) internal virtual {
         AccountStorage.layout().defaultFallbackContract = fallbackContract;
     }
 

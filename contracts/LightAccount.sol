@@ -9,39 +9,38 @@ import {OwnerManager} from "./base/OwnerManager.sol";
 import {StandardExecutor} from "./base/StandardExecutor.sol";
 import {ValidatorManager} from "./base/ValidatorManager.sol";
 import {HookManager} from "./base/HookManager.sol";
-
+import {SignatureDecoder} from "./utils/SignatureDecoder.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
 contract LightAccount is
     IAccount,
     IERC1271,
     EntryPointManager,
-    FallbackManager,
-    ModuleManager,
     OwnerManager,
+    ModuleManager,
+    HookManager,
     StandardExecutor,
     ValidatorManager,
-    HookManager
+    FallbackManager
 {
     constructor(address _entryPoint) EntryPointManager(_entryPoint) {}
 
-    function _isAuthorizedModule() internal view override returns (bool) {
-        return __isAuthorizedModule();
-    }
-
     function isValidSignature(bytes32 hash, bytes calldata signature)
-        external
+        public
         view
         virtual
         override
         returns (bytes4 magicValue)
     {
-        if (_preIsValidSignatureHook(hash, signature) == false) return bytes4(0);
-        return _isValidSignature(hash, signature);
+        (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
+            SignatureDecoder.signatureSplit(signature);
+
+        if (_preIsValidSignatureHook(hash, hookSignature) == false) return bytes4(0);
+        return _isValidSignature(hash, validator, validatorSignature);
     }
 
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
-        external
+        public
         virtual
         override
         onlyEntryPoint
@@ -52,7 +51,12 @@ contract LightAccount is
             (success);
         }
 
-        if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds) == false) return SIG_VALIDATION_FAILED;
-        validationData = _validateUserOp(userOp, userOpHash);
+        (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
+            SignatureDecoder.signatureSplit(userOp.signature);
+
+        if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature) == false) {
+            return SIG_VALIDATION_FAILED;
+        }
+        validationData = _validateUserOp(userOp, userOpHash, validator, validatorSignature);
     }
 }

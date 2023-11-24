@@ -69,18 +69,51 @@ abstract contract HookManager is Authority, IHookManager, IERC1271 {
         override
         returns (address[] memory preIsValidSignatureHooks, address[] memory preUserOpValidationHooks)
     {
-        revert("Not implemented");
+        mapping(address => address) storage preIsValidSignatureHook = AccountStorage.layout().preIsValidSignatureHook;
+        preIsValidSignatureHooks =
+            preIsValidSignatureHook.list(AddressLinkedList.SENTINEL_ADDRESS, preIsValidSignatureHook.size());
+        mapping(address => address) storage preUserOpValidationHook = AccountStorage.layout().preUserOpValidationHook;
+        preUserOpValidationHooks =
+            preUserOpValidationHook.list(AddressLinkedList.SENTINEL_ADDRESS, preUserOpValidationHook.size());
     }
 
-    function _preIsValidSignatureHook(bytes32 hash, bytes calldata signature) internal view virtual returns (bool) {
-        revert("Not implemented");
-    }
-
-    function _preUserOpValidationHook(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
+    function _preIsValidSignatureHook(bytes32 hash, bytes calldata hookSignature)
         internal
+        view
         virtual
         returns (bool)
     {
-        revert("Not implemented");
+        mapping(address => address) storage preIsValidSignatureHook = AccountStorage.layout().preIsValidSignatureHook;
+        address addr = preIsValidSignatureHook[AddressLinkedList.SENTINEL_ADDRESS];
+        while (uint160(addr) > AddressLinkedList.SENTINEL_UINT) {
+            // TODO
+            bytes calldata currentHookSignature = hookSignature[0:0];
+            try IHook(addr).preIsValidSignatureHook(hash, currentHookSignature) {}
+            catch {
+                return false;
+            }
+            addr = preIsValidSignatureHook[addr];
+        }
+        return true;
+    }
+
+    function _preUserOpValidationHook(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        uint256 missingAccountFunds,
+        bytes calldata hookSignature
+    ) internal virtual returns (bool) {
+        mapping(address => address) storage preUserOpValidationHook = AccountStorage.layout().preUserOpValidationHook;
+        address addr = preUserOpValidationHook[AddressLinkedList.SENTINEL_ADDRESS];
+        while (uint160(addr) > AddressLinkedList.SENTINEL_UINT) {
+            // TODO
+            bytes calldata currentHookSignature = hookSignature[0:0];
+            try IHook(addr).preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, currentHookSignature) {}
+            catch {
+                return false;
+            }
+            addr = preUserOpValidationHook[addr];
+        }
+        return true;
     }
 }

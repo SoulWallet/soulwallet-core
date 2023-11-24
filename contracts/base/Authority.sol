@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 abstract contract Authority {
     error CALLER_MUST_BE_SELF_OR_MODULE();
 
-    function _isAuthorizedModule() internal view virtual returns (bool) {}
+    function _isAuthorizedModule() internal view virtual returns (bool);
 
     /**
      * @notice Ensures the calling contract is either the Authority contract itself or an authorized module
