@@ -5,7 +5,13 @@ import {IStandardExecutor, Execution} from "../interface/IStandardExecutor.sol";
 import {EntryPointManager} from "./EntryPointManager.sol";
 
 abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
-    function execute(address target, uint256 value, bytes memory data) public payable virtual override onlyEntryPoint {
+    function execute(address target, uint256 value, bytes memory data)
+        external
+        payable
+        virtual
+        override
+        onlyEntryPoint
+    {
         assembly ("memory-safe") {
             let result := call(not(0), target, value, add(data, 0x20), mload(data), 0, 0)
             if iszero(result) {
@@ -16,7 +22,7 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
         }
     }
 
-    function executeBatch(Execution[] calldata executions) public payable virtual override onlyEntryPoint {
+    function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
         for (uint256 i = 0; i < executions.length; i++) {
             Execution calldata execution = executions[i];
             address target = execution.target;

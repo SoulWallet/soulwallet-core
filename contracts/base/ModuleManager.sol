@@ -94,7 +94,7 @@ abstract contract ModuleManager is IModuleManager, Authority {
         }
     }
 
-    function executeFromModule(address dest, uint256 value, bytes memory func) public virtual override {
+    function executeFromModule(address dest, uint256 value, bytes memory func) external virtual override {
         require(_isAuthorizedModule());
 
         if (dest == address(this)) revert MODULE_EXECUTE_FROM_MODULE_RECURSIVE();

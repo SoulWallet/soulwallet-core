@@ -31,7 +31,7 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @param owner Address in bytes32 format to check
      * @return true if provided owner is a current owner, false otherwise
      */
-    function isOwner(bytes32 owner) public view virtual override returns (bool) {
+    function isOwner(bytes32 owner) external view virtual override returns (bool) {
         return _isOwner(owner);
     }
 
@@ -39,17 +39,25 @@ abstract contract OwnerManager is IOwnerManager, Authority {
         _ownerMapping().add(owner);
     }
 
-    function addOwner(bytes32 owner) public virtual override onlySelfOrModule {
+    function addOwner(bytes32 owner) external virtual override onlySelfOrModule {
         _addOwner(owner);
     }
 
-    function removeOwner(bytes32 owner) public virtual override onlySelfOrModule {
+    function _removeOwner(bytes32 owner) internal virtual {
         _ownerMapping().remove(owner);
     }
 
-    function resetOwner(bytes32 newOwner) public virtual override onlySelfOrModule {
+    function removeOwner(bytes32 owner) external virtual override onlySelfOrModule {
+        _removeOwner(owner);
+    }
+
+    function _resetOwner(bytes32 newOwner) internal virtual {
         _ownerMapping().clear();
         _ownerMapping().add(newOwner);
+    }
+
+    function resetOwner(bytes32 newOwner) external virtual override onlySelfOrModule {
+        _resetOwner(newOwner);
     }
 
     function listOwner() external view virtual override returns (bytes32[] memory owners) {
