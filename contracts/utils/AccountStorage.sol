@@ -15,7 +15,8 @@ library AccountStorage {
         // validators
         mapping(address => address) validators;
         // hooks
-        mapping(address => address) hooks;
+        mapping(address => address) preIsValidSignatureHook;
+        mapping(address => address) preUserOpValidationHook;
         // modules
         mapping(address => address) modules;
         mapping(address => mapping(bytes4 => bytes4)) moduleSelectors;

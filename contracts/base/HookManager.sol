@@ -13,19 +13,27 @@ abstract contract HookManager is Authority, IHookManager, IERC1271 {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_HOOK();
+    error INVALID_HOOK_TYPE();
+    error HOOK_NOT_EXISTS();
 
     bytes4 private constant INTERFACE_ID_HOOK = type(IHook).interfaceId;
+    uint8 private constant PRE_IS_VALID_SIGNATURE_HOOK = 1 << 0;
+    uint8 private constant PRE_USER_OP_VALIDATION_HOOK = 1 << 1;
 
-    function _hookMapping() internal view returns (mapping(address => address) storage hooks) {
-        hooks = AccountStorage.layout().hooks;
-    }
-
-    function _installHook(address hook) internal virtual {
+    function _installHook(address hook, uint8 capabilityFlags) internal virtual {
         try IHook(hook).supportsInterface(INTERFACE_ID_HOOK) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_HOOK();
             } else {
-                _hookMapping().add(hook);
+                if (capabilityFlags & (PRE_IS_VALID_SIGNATURE_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
+                    revert INVALID_HOOK_TYPE();
+                }
+                if (capabilityFlags & PRE_IS_VALID_SIGNATURE_HOOK == PRE_IS_VALID_SIGNATURE_HOOK) {
+                    AccountStorage.layout().preIsValidSignatureHook.add(hook);
+                }
+                if (capabilityFlags & PRE_USER_OP_VALIDATION_HOOK == PRE_USER_OP_VALIDATION_HOOK) {
+                    AccountStorage.layout().preUserOpValidationHook.add(hook);
+                }
             }
         } catch {
             revert INVALID_HOOK();
@@ -33,15 +41,21 @@ abstract contract HookManager is Authority, IHookManager, IERC1271 {
     }
 
     function _uninstallHook(address hook) internal virtual {
-        _hookMapping().remove(hook);
+        if (
+            AccountStorage.layout().preIsValidSignatureHook.tryRemove(hook)
+                || AccountStorage.layout().preUserOpValidationHook.tryRemove(hook)
+        ) {
+            revert HOOK_NOT_EXISTS();
+        }
     }
 
     function _cleanHook() internal virtual {
-        _hookMapping().clear();
+        AccountStorage.layout().preIsValidSignatureHook.clear();
+        AccountStorage.layout().preUserOpValidationHook.clear();
     }
 
-    function installHook(address hook) external virtual override onlySelfOrModule {
-        _installHook(hook);
+    function installHook(address hook, uint8 capabilityFlags) external virtual override onlySelfOrModule {
+        _installHook(hook, capabilityFlags);
     }
 
     function uninstallHook(address hook) external virtual override onlySelfOrModule {
