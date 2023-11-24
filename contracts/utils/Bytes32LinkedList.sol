@@ -29,28 +29,6 @@ library Bytes32LinkedList {
         }
     }
 
-    function replace(mapping(bytes32 => bytes32) storage self, bytes32 oldData, bytes32 newData) internal {
-        if (!isExist(self, oldData)) {
-            revert DATA_NOT_EXISTS();
-        }
-        if (isExist(self, newData)) {
-            revert DATA_ALREADY_EXISTS();
-        }
-
-        bytes32 cursor = SENTINEL_BYTES32;
-        while (true) {
-            bytes32 _data = self[cursor];
-            if (_data == oldData) {
-                bytes32 next = self[_data];
-                self[newData] = next;
-                self[cursor] = newData;
-                self[_data] = bytes32(0);
-                return;
-            }
-            cursor = _data;
-        }
-    }
-
     function remove(mapping(bytes32 => bytes32) storage self, bytes32 data) internal {
         if (!tryRemove(self, data)) {
             revert DATA_NOT_EXISTS();

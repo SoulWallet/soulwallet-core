@@ -43,28 +43,6 @@ library SelectorLinkedList {
         }
     }
 
-    function replace(mapping(bytes4 => bytes4) storage self, bytes4 oldSelector, bytes4 newSelector) internal {
-        if (!isExist(self, oldSelector)) {
-            revert SELECTOR_NOT_EXISTS();
-        }
-        if (isExist(self, newSelector)) {
-            revert SELECTOR_ALREADY_EXISTS();
-        }
-
-        bytes4 cursor = SENTINEL_SELECTOR;
-        while (true) {
-            bytes4 _selector = self[cursor];
-            if (_selector == oldSelector) {
-                bytes4 next = self[_selector];
-                self[newSelector] = next;
-                self[cursor] = newSelector;
-                self[_selector] = 0;
-                return;
-            }
-            cursor = _selector;
-        }
-    }
-
     function remove(mapping(bytes4 => bytes4) storage self, bytes4 selector) internal {
         if (!isExist(self, selector)) {
             revert SELECTOR_NOT_EXISTS();

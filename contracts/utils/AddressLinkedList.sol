@@ -12,10 +12,10 @@ library AddressLinkedList {
 
     address internal constant SENTINEL_ADDRESS = address(1);
     uint160 internal constant SENTINEL_UINT = 1;
+
     /**
      * @dev Modifier that checks if an address is valid.
      */
-
     modifier onlyAddress(address addr) {
         if (uint160(addr) <= SENTINEL_UINT) {
             revert INVALID_ADDRESS();
@@ -41,34 +41,7 @@ library AddressLinkedList {
             self[addr] = _prev;
         }
     }
-    /**
-     * @notice Replaces an old address with a new one in the linked list.
-     * @param self The linked list mapping.
-     * @param oldAddr The old address to be replaced.
-     * @param newAddr The new address.
-     */
 
-    function replace(mapping(address => address) storage self, address oldAddr, address newAddr) internal {
-        if (!isExist(self, oldAddr)) {
-            revert ADDRESS_NOT_EXISTS();
-        }
-        if (isExist(self, newAddr)) {
-            revert ADDRESS_ALREADY_EXISTS();
-        }
-
-        address cursor = SENTINEL_ADDRESS;
-        while (true) {
-            address _addr = self[cursor];
-            if (_addr == oldAddr) {
-                address next = self[_addr];
-                self[newAddr] = next;
-                self[cursor] = newAddr;
-                self[_addr] = address(0);
-                return;
-            }
-            cursor = _addr;
-        }
-    }
     /**
      * @notice Removes an address from the linked list.
      * @param self The linked list mapping.

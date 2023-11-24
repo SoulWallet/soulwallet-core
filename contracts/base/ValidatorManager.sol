@@ -19,16 +19,12 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
 
-    function _validatorMapping() internal view returns (mapping(address => address) storage validator) {
-        validator = AccountStorage.layout().validators;
-    }
-
     function _installValidator(address validator) internal virtual {
         try IValidator(validator).supportsInterface(INTERFACE_ID_VALIDATOR) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_VALIDATOR();
             } else {
-                _validatorMapping().add(address(validator));
+                AccountStorage.layout().validators.add(address(validator));
             }
         } catch {
             revert INVALID_VALIDATOR();
@@ -36,11 +32,11 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
     }
 
     function _uninstallValidator(address validator) internal virtual {
-        _validatorMapping().remove(address(validator));
+        AccountStorage.layout().validators.remove(address(validator));
     }
 
     function _resetValidator(address validator) internal virtual {
-        _validatorMapping().clear();
+        AccountStorage.layout().validators.clear();
         _installValidator(validator);
     }
 
@@ -53,7 +49,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
     }
 
     function listValidator() external view virtual override returns (address[] memory validators) {
-        mapping(address => address) storage validator = _validatorMapping();
+        mapping(address => address) storage validator = AccountStorage.layout().validators;
         validators = validator.list(AddressLinkedList.SENTINEL_ADDRESS, validator.size());
     }
 
@@ -63,7 +59,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         virtual
         returns (bytes4 magicValue)
     {
-        if (_validatorMapping().isExist(validator) == false) {
+        if (AccountStorage.layout().validators.isExist(validator) == false) {
             return bytes4(0);
         }
         try IValidator(validator).isValidSignature(hash, validatorSignature) returns (bytes4 _magicValue) {
@@ -79,7 +75,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         address validator,
         bytes calldata validatorSignature
     ) internal view virtual returns (uint256 validationData) {
-        if (_validatorMapping().isExist(validator) == false) {
+        if (AccountStorage.layout().validators.isExist(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
         try IValidator(validator).validateUserOp(userOp, userOpHash, validatorSignature) returns (
