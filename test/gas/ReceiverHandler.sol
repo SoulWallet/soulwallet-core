@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
-contract TokenFallback is IERC721Receiver, IERC1155Receiver {
+contract ReceiverHandler is IERC721Receiver, IERC1155Receiver {
     bytes4 private constant _ERC721_RECEIVED = IERC721Receiver.onERC721Received.selector;
     bytes4 private constant _ERC1155_RECEIVED = IERC1155Receiver.onERC1155Received.selector;
     bytes4 private constant _ERC1155_BATCH_RECEIVED = IERC1155Receiver.onERC1155BatchReceived.selector;

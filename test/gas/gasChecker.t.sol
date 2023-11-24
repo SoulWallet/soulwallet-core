@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "./pureWallet.sol";
 import "@source/validators/BuildinEOAValidator.sol";
-import {TokenFallback} from "@source/fallback/TokenFallback.sol";
+import {ReceiverHandler} from "./ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract GasCheckerTest is Test {
@@ -12,7 +12,7 @@ contract GasCheckerTest is Test {
 
     PureWallet wallet;
     BuildinEOAValidator validator;
-    TokenFallback _fallback;
+    ReceiverHandler _fallback;
 
     address public walletOwner;
     uint256 public walletOwnerPrivateKey;
@@ -20,7 +20,7 @@ contract GasCheckerTest is Test {
     function setUp() public {
         wallet = new PureWallet(address(this));
         validator = new BuildinEOAValidator();
-        _fallback = new TokenFallback();
+        _fallback = new ReceiverHandler();
 
         (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner");
     }

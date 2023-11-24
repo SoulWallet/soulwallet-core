@@ -7,9 +7,8 @@ import {IHook} from "../interface/IHook.sol";
 import {IAccount, UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
-import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
-abstract contract HookManager is Authority, IHookManager, IERC1271 {
+abstract contract HookManager is Authority, IHookManager {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_HOOK();
