@@ -4,10 +4,12 @@ pragma solidity ^0.8.20;
 import {IValidator} from "../interface/IValidator.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IOwnable} from "../interface/IOwnable.sol";
 
 contract BuildinEOAValidator is IValidator {
     using ECDSA for bytes32;
+    using MessageHashUtils for bytes32;
 
     // Magic value indicating a valid signature for ERC-1271 contracts
     bytes4 private constant MAGICVALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
@@ -33,7 +35,8 @@ contract BuildinEOAValidator is IValidator {
         override
         returns (bytes4 magicValue)
     {
-        (address recoveredAddr, ECDSA.RecoverError error,) = ECDSA.tryRecover(_packHash(hash), validatorSignature);
+        (address recoveredAddr, ECDSA.RecoverError error,) =
+            ECDSA.tryRecover(_packHash(hash).toEthSignedMessageHash(), validatorSignature);
         if (error != ECDSA.RecoverError.NoError) {
             return bytes4(0);
         }
@@ -54,7 +57,8 @@ contract BuildinEOAValidator is IValidator {
         returns (uint256 validationData)
     {
         (userOp);
-        (address recoveredAddr, ECDSA.RecoverError error,) = ECDSA.tryRecover(_packHash(userOpHash), validatorSignature);
+        (address recoveredAddr, ECDSA.RecoverError error,) =
+            ECDSA.tryRecover(_packHash(userOpHash).toEthSignedMessageHash(), validatorSignature);
         if (error != ECDSA.RecoverError.NoError) {
             return 1;
         }
