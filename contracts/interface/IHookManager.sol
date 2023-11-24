@@ -5,5 +5,8 @@ interface IHookManager {
     function installHook(address hook, uint8 capabilityFlags) external;
     function uninstallHook(address hook) external;
 
-    function listHook() external view returns (address[] memory hooks);
+    function listHook()
+        external
+        view
+        returns (address[] memory preIsValidSignatureHooks, address[] memory preUserOpValidationHooks);
 }

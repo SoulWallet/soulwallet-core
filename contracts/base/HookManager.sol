@@ -62,7 +62,13 @@ abstract contract HookManager is Authority, IHookManager, IERC1271 {
         _uninstallHook(hook);
     }
 
-    function listHook() external view virtual override returns (address[] memory hooks) {
+    function listHook()
+        external
+        view
+        virtual
+        override
+        returns (address[] memory preIsValidSignatureHooks, address[] memory preUserOpValidationHooks)
+    {
         revert("Not implemented");
     }
 
