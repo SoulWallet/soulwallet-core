@@ -11,15 +11,13 @@ struct Execution {
 }
 
 interface IStandardExecutor {
-    /// @notice Standard execute method.
-    /// @dev If the target is a plugin, the call SHOULD revert.
+    /// @dev Standard execute method.
     /// @param target The target contract for account to execute.
     /// @param value The value for the execution.
     /// @param data The call data for the execution.
     function execute(address target, uint256 value, bytes calldata data) external payable;
 
-    /// @notice Standard executeBatch method.
-    /// @dev If the target is a plugin, the call SHOULD revert.
+    /// @dev Standard executeBatch method.
     /// @param executions The array of executions.
     function executeBatch(Execution[] calldata executions) external payable;
 }

@@ -6,7 +6,7 @@ import {UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IOwnable} from "../interface/IOwnable.sol";
 
-contract BuiltinValidator is IValidator {
+contract BuildinEOAValidator is IValidator {
     using ECDSA for bytes32;
 
     // Magic value indicating a valid signature for ERC-1271 contracts
@@ -27,13 +27,13 @@ contract BuiltinValidator is IValidator {
         return keccak256(abi.encode(hash, account, _chainid));
     }
 
-    function isValidSignature(bytes32 hash, bytes calldata signature)
+    function isValidSignature(bytes32 hash, bytes calldata validatorSignature)
         external
         view
         override
         returns (bytes4 magicValue)
     {
-        (address recoveredAddr, ECDSA.RecoverError error,) = ECDSA.tryRecover(_packHash(hash), signature[20:]);
+        (address recoveredAddr, ECDSA.RecoverError error,) = ECDSA.tryRecover(_packHash(hash), validatorSignature);
         if (error != ECDSA.RecoverError.NoError) {
             return bytes4(0);
         }
@@ -47,16 +47,14 @@ contract BuiltinValidator is IValidator {
         }
     }
 
-    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
+    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         external
         view
         override
         returns (uint256 validationData)
     {
-        (missingAccountFunds);
-
-        (address recoveredAddr, ECDSA.RecoverError error,) =
-            ECDSA.tryRecover(_packHash(userOpHash), userOp.signature[20:]);
+        (userOp);
+        (address recoveredAddr, ECDSA.RecoverError error,) = ECDSA.tryRecover(_packHash(userOpHash), validatorSignature);
         if (error != ECDSA.RecoverError.NoError) {
             return 1;
         }

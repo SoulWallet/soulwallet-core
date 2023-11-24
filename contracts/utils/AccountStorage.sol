@@ -9,26 +9,16 @@ library AccountStorage {
     bytes32 internal constant _ACCOUNT_SLOT = keccak256("soulwallet.contracts.AccountStorage");
 
     struct Layout {
-        // ┌───────────────────┐
-        // │     base data     │
+        // base data
         mapping(bytes32 => bytes32) owners;
         address defaultFallbackContract;
-        // └───────────────────┘
-
-        // ┌───────────────────┐
-        // │     base data     │
+        // validators
         mapping(address => address) validators;
-        // └───────────────────┘
-
-        // ┌───────────────────┐
-        // │       Module      │
+        // hooks
+        mapping(address => address) hooks;
+        // modules
         mapping(address => address) modules;
         mapping(address => mapping(bytes4 => bytes4)) moduleSelectors;
-        // └───────────────────┘
-
-        // ┌───────────────────┐
-        // │       Plugin      │
-        mapping(address => address) plugins;
     }
 
     /**

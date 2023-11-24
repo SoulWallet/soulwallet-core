@@ -7,9 +7,9 @@ import {IValidator} from "../interface/IValidator.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
-import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import {SignatureDecoder} from "../utils/SignatureDecoder.sol";
 
-abstract contract ValidatorManager is Authority, IValidatorManager, IERC1271 {
+abstract contract ValidatorManager is Authority, IValidatorManager {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_VALIDATOR();
@@ -62,11 +62,10 @@ abstract contract ValidatorManager is Authority, IValidatorManager, IERC1271 {
      * @param hash      Hash of the data to be signed
      * @param signature Signature byte array associated with _data
      */
-    function isValidSignature(bytes32 hash, bytes calldata signature)
-        external
+    function _isValidSignature(bytes32 hash, bytes calldata signature)
+        internal
         view
         virtual
-        override
         returns (bytes4 magicValue)
     {
         address validator = address(bytes20(signature[0:20]));
@@ -80,16 +79,19 @@ abstract contract ValidatorManager is Authority, IValidatorManager, IERC1271 {
         }
     }
 
-    function _validateUserOp(
-        address validator,
-        UserOperation calldata userOp,
-        bytes32 userOpHash,
-        uint256 missingAccountFunds
-    ) internal view virtual returns (uint256 validationData) {
+    function _validateUserOp(UserOperation calldata userOp, bytes32 userOpHash)
+        internal
+        view
+        virtual
+        returns (uint256 validationData)
+    {
+        (address validator, bytes calldata validatorSignature) =
+            SignatureDecoder.decodeValidatorSignature(userOp.signature);
+
         if (_validatorMapping().isExist(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
-        try IValidator(validator).validateUserOp(userOp, userOpHash, missingAccountFunds) returns (
+        try IValidator(validator).validateUserOp(userOp, userOpHash, validatorSignature) returns (
             uint256 _validationData
         ) {
             return _validationData;
