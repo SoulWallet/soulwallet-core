@@ -46,11 +46,6 @@ contract LightAccount is
         onlyEntryPoint
         returns (uint256 validationData)
     {
-        if (missingAccountFunds != 0) {
-            (bool success,) = payable(msg.sender).call{value: missingAccountFunds, gas: type(uint256).max}("");
-            (success);
-        }
-
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
             SignatureDecoder.signatureSplit(userOp.signature);
 
@@ -58,5 +53,9 @@ contract LightAccount is
             return SIG_VALIDATION_FAILED;
         }
         validationData = _validateUserOp(userOp, userOpHash, validator, validatorSignature);
+        if (missingAccountFunds != 0) {
+            (bool success,) = payable(msg.sender).call{value: missingAccountFunds, gas: type(uint256).max}("");
+            (success);
+        }
     }
 }
