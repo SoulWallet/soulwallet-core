@@ -3,7 +3,7 @@ src = "contracts"
 out = "out"
 libs = ["lib"]
 
-solc = "0.8.21"
+solc = "0.8.23"
 optimizer = true
 optimizer_runs = 100000
 via_ir = true

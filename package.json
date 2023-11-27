@@ -1,0 +1,8 @@
+{
+    "name": "light-account",
+    "scripts": {
+        "build": "forge build --sizes",
+        "test": "forge test -vvv",
+        "gasCheck": "forge test -vv --match-contract 'GasCheckerTest' | grep -E 'gas checker|-----'"
+    }
+}

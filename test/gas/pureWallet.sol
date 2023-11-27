@@ -6,7 +6,10 @@ import {LightAccount} from "@source/LightAccount.sol";
 contract PureWallet is LightAccount {
     uint256 private _initialized;
 
-    constructor(address _entryPoint) LightAccount(_entryPoint) {}
+    constructor(address _entryPoint) LightAccount(_entryPoint) {
+        require(_initialized == 0);
+        _initialized = 1;
+    }
 
     function initialize(bytes32[] memory _owners, address defaultValidator, address defaultFallback) external {
         require(_initialized == 0);
