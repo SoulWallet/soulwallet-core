@@ -36,6 +36,5 @@ interface IValidator is IERC165 {
      */
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         external
-        view
         returns (uint256 validationData);
 }

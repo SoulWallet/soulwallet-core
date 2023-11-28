@@ -5,7 +5,7 @@ import {IStandardExecutor, Execution} from "../interface/IStandardExecutor.sol";
 import {EntryPointManager} from "./EntryPointManager.sol";
 
 abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
-    function execute(address target, uint256 value, bytes memory data)
+    function execute(address target, uint256 value, bytes calldata data)
         external
         payable
         virtual
@@ -13,9 +13,10 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
         onlyEntryPoint
     {
         assembly ("memory-safe") {
-            let result := call(gas(), target, value, add(data, 0x20), mload(data), 0, 0)
+            let ptr := mload(0x40)
+            calldatacopy(ptr, data.offset, data.length)
+            let result := call(gas(), target, value, ptr, data.length, 0, 0)
             if iszero(result) {
-                let ptr := mload(0x40)
                 returndatacopy(ptr, 0, returndatasize())
                 revert(ptr, returndatasize())
             }
@@ -27,12 +28,13 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
             Execution calldata execution = executions[i];
             address target = execution.target;
             uint256 value = execution.value;
-            bytes memory data = execution.data;
+            bytes calldata data = execution.data;
 
             assembly ("memory-safe") {
-                let result := call(gas(), target, value, add(data, 0x20), mload(data), 0, 0)
+                let ptr := mload(0x40)
+                calldatacopy(ptr, data.offset, data.length)
+                let result := call(gas(), target, value, ptr, data.length, 0, 0)
                 if iszero(result) {
-                    let ptr := mload(0x40)
                     returndatacopy(ptr, 0, returndatasize())
                     revert(ptr, returndatasize())
                 }

@@ -381,11 +381,15 @@ contract GasCheckerTest is Test {
         uint256 preFund = _getRequiredPrefund(userOperation);
         require(preFund < 0.2 ether, "preFund too high");
         vm.deal(sender, preFund);
+        require(token.balanceOf(address(1)) == 0 ether);
+        require(token.balanceOf(address(2)) == 0 ether);
         require(token.balanceOf(address(3)) == 0 ether);
         uint256 gasBefore = gasleft();
         entryPoint.handleOps(ops, payable(beneficiary));
         uint256 gasAfter = gasleft();
         console.log("address(3).balance,", token.balanceOf(address(3)));
+        require(token.balanceOf(address(1)) == 1 ether, "ERC20 transfer failed");
+        require(token.balanceOf(address(2)) == 1 ether, "ERC20 transfer failed");
         require(token.balanceOf(address(3)) == 1 ether, "ERC20 transfer failed");
         uint256 gasCost = gasBefore - gasAfter;
         console.log("| * gas checker | ERC20 batch transfer:         | ", gasCost / 3, "|");

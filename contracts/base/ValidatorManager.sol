@@ -74,7 +74,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         bytes32 userOpHash,
         address validator,
         bytes calldata validatorSignature
-    ) internal view virtual returns (uint256 validationData) {
+    ) internal virtual returns (uint256 validationData) {
         if (AccountStorage.layout().validators.isExist(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
