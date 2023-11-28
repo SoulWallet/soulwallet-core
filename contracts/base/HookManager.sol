@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {Authority} from "./Authority.sol";
 import {IHookManager} from "../interface/IHookManager.sol";
 import {IHook} from "../interface/IHook.sol";
-import {IAccount, UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
+import {IAccount, UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 

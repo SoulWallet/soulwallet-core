@@ -6,14 +6,14 @@ npm run gasCheck
   +--------------------------------------------------------+
   | * gas checker |              Item             |   gas  |
   +--------------------------------------------------------+
-  | * gas checker | ERC20 batch transfer:         |  47251 |
+  | * gas checker | ERC20 batch transfer:         |  47246 |
   +--------------------------------------------------------+
-  | * gas checker | ETH batch transfer:           |  57001 |
+  | * gas checker | ETH batch transfer:           |  56996 |
   +--------------------------------------------------------+
-  | * gas checker | Deploy Account:               | 377812 |
+  | * gas checker | Deploy Account:               | 377797 |
   +--------------------------------------------------------+
-  | * gas checker | ERC20 transfer:               |  92924 |
+  | * gas checker | ERC20 transfer:               |  92909 |
   +--------------------------------------------------------+
-  | * gas checker | ETH transfer:                 | 104446 |
+  | * gas checker | ETH transfer:                 | 104431 |
   +--------------------------------------------------------+
 ```

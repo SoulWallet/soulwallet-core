@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IAccount, UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
+import {IAccount, UserOperation} from "./interface/IAccount.sol";
 import {EntryPointManager} from "./base/EntryPointManager.sol";
 import {FallbackManager} from "./base/FallbackManager.sol";
 import {ModuleManager} from "./base/ModuleManager.sol";
@@ -41,6 +41,7 @@ contract LightAccount is
 
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         public
+        payable
         virtual
         override
         onlyEntryPoint

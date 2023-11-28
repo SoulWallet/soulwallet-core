@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {Authority} from "./Authority.sol";
 import {IValidatorManager} from "../interface/IValidatorManager.sol";
 import {IValidator} from "../interface/IValidator.sol";
-import {UserOperation} from "@account-abstraction/contracts/interfaces/IAccount.sol";
+import {UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 

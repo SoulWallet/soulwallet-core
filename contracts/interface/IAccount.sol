@@ -1,20 +1,9 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.12;
 
-import {UserOperation} from "../interface/IAccount.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
 
-interface IValidator is IERC165 {
-    /**
-     * @dev Should return whether the signature provided is valid for the provided data
-     * @param hash      Hash of the data to be signed
-     * @param validatorSignature Signature byte array associated with _data
-     */
-    function isValidSignature(bytes32 hash, bytes memory validatorSignature)
-        external
-        view
-        returns (bytes4 magicValue);
-
+interface IAccount {
     /**
      * Validate user's signature and nonce
      * the entryPoint will make the call to the recipient only if this validation call returns successfully.
@@ -26,6 +15,11 @@ interface IValidator is IERC165 {
      *      Must validate the signature and nonce
      * @param userOp the operation that is about to be executed.
      * @param userOpHash hash of the user's request data. can be used as the basis for signature.
+     * @param missingAccountFunds missing funds on the account's deposit in the entrypoint.
+     *      This is the minimum amount to transfer to the sender(entryPoint) to be able to make the call.
+     *      The excess is left as a deposit in the entrypoint, for future calls.
+     *      can be withdrawn anytime using "entryPoint.withdrawTo()"
+     *      In case there is a paymaster in the request (or the current deposit is high enough), this value will be zero.
      * @return validationData packaged ValidationData structure. use `_packValidationData` and `_unpackValidationData` to encode and decode
      *      <20-byte> sigAuthorizer - 0 for valid signature, 1 to mark signature failure,
      *         otherwise, an address of an "authorizer" contract.
@@ -34,7 +28,8 @@ interface IValidator is IERC165 {
      *      If an account doesn't use time-range, it is enough to return SIG_VALIDATION_FAILED value (1) for signature failure.
      *      Note that the validation code cannot use block.timestamp (or block.number) directly.
      */
-    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         external
+        payable
         returns (uint256 validationData);
 }
