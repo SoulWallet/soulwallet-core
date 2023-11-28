@@ -13,6 +13,7 @@ import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint
 import {DeployEntryPoint} from "../deployEntryPoint.sol";
 import {SoulWalletFactory} from "./SoulWalletFactory.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
+import {TokenERC20} from "./TokenERC20.sol";
 
 contract GasCheckerTest is Test {
     using MessageHashUtils for bytes32;
@@ -23,6 +24,8 @@ contract GasCheckerTest is Test {
 
     BuildinEOAValidator validator;
     ReceiverHandler _fallback;
+
+    TokenERC20 token;
 
     address public walletOwner1;
     uint256 public walletOwner1PrivateKey;
@@ -40,6 +43,8 @@ contract GasCheckerTest is Test {
         (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
 
         (walletOwner2, walletOwner2PrivateKey) = makeAddrAndKey("owner2");
+
+        token = new TokenERC20();
     }
 
     function test0() public view {
@@ -207,63 +212,7 @@ contract GasCheckerTest is Test {
         console.log("+--------------------------------------------------------+");
     }
 
-    function testETHTransferWithData() public {
-        (, address sender) = deploy();
-
-        uint256 nonce = 1;
-        bytes memory initCode;
-        bytes memory callData;
-        uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
-        bytes memory paymasterAndData;
-        bytes memory signature;
-        {
-            // function execute(address target, uint256 value, bytes memory data)
-            callGasLimit = 40000;
-            bytes memory data =
-                hex"ff75322f410fabc35708af2dbaa27a1781c5f9dd7ad6b87eb760bff7eed68004ff75322f410fabc35708af2dbaa27a1781c5";
-            callData = abi.encodeWithSelector(walletImpl.execute.selector, address(1), 1 ether, data);
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-        }
-        UserOperation memory userOperation = UserOperation(
-            sender,
-            nonce,
-            initCode,
-            callData,
-            callGasLimit,
-            verificationGasLimit,
-            preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            paymasterAndData,
-            signature
-        );
-
-        signUserOp(userOperation);
-
-        UserOperation[] memory ops = new UserOperation[](1);
-        ops[0] = userOperation;
-        (address beneficiary,) = makeAddrAndKey("beneficiary");
-        uint256 preFund = _getRequiredPrefund(userOperation);
-        require(preFund < 0.2 ether, "preFund too high");
-        vm.deal(sender, preFund + 1 ether);
-        uint256 gasBefore = gasleft();
-        entryPoint.handleOps(ops, payable(beneficiary));
-        uint256 gasAfter = gasleft();
-        console.log("address(1).balance,", address(1).balance);
-        require(address(1).balance == 1 ether, "ETH transfer failed");
-        uint256 gasCost = gasBefore - gasAfter;
-        console.log("| * gas checker | ETH transfer with data:       |", gasCost, "|");
-        console.log("+--------------------------------------------------------+");
-    }
-
-    function testbatchETHTransfer() public {
+    function testBatchETHTransfer() public {
         (, address sender) = deploy();
 
         uint256 nonce = 1;
@@ -317,12 +266,14 @@ contract GasCheckerTest is Test {
         console.log("address(1).balance,", address(1).balance);
         require(address(1).balance == 0.1 ether, "ETH transfer failed");
         uint256 gasCost = gasBefore - gasAfter;
-        console.log("| * gas checker | batch ETH transfer:           |", gasCost, "|");
+        console.log("| * gas checker | ETH batch transfer:           | ", gasCost / 3, "|");
         console.log("+--------------------------------------------------------+");
     }
 
-    function testbatchETHTransferWithData() public {
+    function testERC20Transfer() public {
         (, address sender) = deploy();
+
+        token.transfer(sender, 1 ether);
 
         uint256 nonce = 1;
         bytes memory initCode;
@@ -335,14 +286,73 @@ contract GasCheckerTest is Test {
         bytes memory paymasterAndData;
         bytes memory signature;
         {
-            //  function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
+            // function transfer(address to, uint256 value)
+            callGasLimit = 40000;
+            bytes memory data = abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether);
+            callData = abi.encodeWithSelector(walletImpl.execute.selector, address(token), 0, data);
+            verificationGasLimit = 1e6;
+            preVerificationGas = 1e5;
+            maxFeePerGas = 100 gwei;
+            maxPriorityFeePerGas = 100 gwei;
+        }
+        UserOperation memory userOperation = UserOperation(
+            sender,
+            nonce,
+            initCode,
+            callData,
+            callGasLimit,
+            verificationGasLimit,
+            preVerificationGas,
+            maxFeePerGas,
+            maxPriorityFeePerGas,
+            paymasterAndData,
+            signature
+        );
+
+        signUserOp(userOperation);
+
+        UserOperation[] memory ops = new UserOperation[](1);
+        ops[0] = userOperation;
+        (address beneficiary,) = makeAddrAndKey("beneficiary");
+        uint256 preFund = _getRequiredPrefund(userOperation);
+        require(preFund < 0.2 ether, "preFund too high");
+        vm.deal(sender, preFund);
+        require(token.balanceOf(address(1)) == 0 ether);
+        uint256 gasBefore = gasleft();
+        entryPoint.handleOps(ops, payable(beneficiary));
+        uint256 gasAfter = gasleft();
+        console.log("address(1).balance,", token.balanceOf(address(1)));
+        require(token.balanceOf(address(1)) == 1 ether, "ERC20 transfer failed");
+        uint256 gasCost = gasBefore - gasAfter;
+        console.log("| * gas checker | ERC20 transfer:               | ", gasCost, "|");
+        console.log("+--------------------------------------------------------+");
+    }
+
+    function testBatchERC20Transfer() public {
+        (, address sender) = deploy();
+
+        token.transfer(sender, 3 ether);
+
+        uint256 nonce = 1;
+        bytes memory initCode;
+        bytes memory callData;
+        uint256 callGasLimit;
+        uint256 verificationGasLimit;
+        uint256 preVerificationGas;
+        uint256 maxFeePerGas;
+        uint256 maxPriorityFeePerGas;
+        bytes memory paymasterAndData;
+        bytes memory signature;
+        {
+            // function execute(address target, uint256 value, bytes memory data)
             callGasLimit = 120000;
             Execution[] memory executions = new Execution[](3);
-            bytes memory data =
-                hex"ff75322f410fabc35708af2dbaa27a1781c5f9dd7ad6b87eb760bff7eed68004ff75322f410fabc35708af2dbaa27a1781c5";
-            executions[0] = Execution(address(1), 0.1 ether, data);
-            executions[1] = Execution(address(2), 0.1 ether, data);
-            executions[2] = Execution(address(3), 0.1 ether, data);
+            executions[0] =
+                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether));
+            executions[1] =
+                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(2), 1 ether));
+            executions[2] =
+                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(3), 1 ether));
             callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
             verificationGasLimit = 1e6;
             preVerificationGas = 1e5;
@@ -370,14 +380,15 @@ contract GasCheckerTest is Test {
         (address beneficiary,) = makeAddrAndKey("beneficiary");
         uint256 preFund = _getRequiredPrefund(userOperation);
         require(preFund < 0.2 ether, "preFund too high");
-        vm.deal(sender, preFund + 1 ether);
+        vm.deal(sender, preFund);
+        require(token.balanceOf(address(3)) == 0 ether);
         uint256 gasBefore = gasleft();
         entryPoint.handleOps(ops, payable(beneficiary));
         uint256 gasAfter = gasleft();
-        console.log("address(1).balance,", address(1).balance);
-        require(address(1).balance == 0.1 ether, "ETH transfer failed");
+        console.log("address(3).balance,", token.balanceOf(address(3)));
+        require(token.balanceOf(address(3)) == 1 ether, "ERC20 transfer failed");
         uint256 gasCost = gasBefore - gasAfter;
-        console.log("| * gas checker | batch ETH transfer with data: |", gasCost, "|");
+        console.log("| * gas checker | ERC20 batch transfer:         | ", gasCost / 3, "|");
         console.log("+--------------------------------------------------------+");
     }
 }
