@@ -54,9 +54,12 @@ contract LightAccount is
             return SIG_VALIDATION_FAILED;
         }
         validationData = _validateUserOp(userOp, userOpHash, validator, validatorSignature);
-        if (missingAccountFunds != 0) {
-            (bool success,) = payable(msg.sender).call{value: missingAccountFunds, gas: type(uint256).max}("");
-            (success);
+
+        assembly {
+            if missingAccountFunds {
+                // ignore failure (its EntryPoint's job to verify, not account.)
+                pop(call(gas(), caller(), missingAccountFunds, 0x00, 0x00, 0x00, 0x00))
+            }
         }
     }
 }

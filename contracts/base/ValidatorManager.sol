@@ -62,10 +62,10 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         if (AccountStorage.layout().validators.isExist(validator) == false) {
             return bytes4(0);
         }
-        try IValidator(validator).isValidSignature(hash, validatorSignature) returns (bytes4 _magicValue) {
-            return _magicValue;
-        } catch {
-            return bytes4(0);
+        bytes memory callData = abi.encodeWithSelector(IValidator.isValidSignature.selector, hash, validatorSignature);
+        assembly ("memory-safe") {
+            let result := staticcall(gas(), validator, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if result { magicValue := mload(0x00) }
         }
     }
 
@@ -78,12 +78,16 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         if (AccountStorage.layout().validators.isExist(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
-        try IValidator(validator).validateUserOp(userOp, userOpHash, validatorSignature) returns (
-            uint256 _validationData
-        ) {
-            return _validationData;
-        } catch {
-            return SIG_VALIDATION_FAILED;
+        bytes memory callData =
+            abi.encodeWithSelector(IValidator.validateUserOp.selector, userOp, userOpHash, validatorSignature);
+
+        assembly ("memory-safe") {
+            let result := call(gas(), validator, 0, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if iszero(result) {
+                mstore(0x00, SIG_VALIDATION_FAILED)
+                return(0x00, 0x20)
+            }
+            validationData := mload(0x00)
         }
     }
 }
