@@ -2,8 +2,10 @@
 pragma solidity ^0.8.20;
 
 interface IHookManager {
-    function installHook(address hook, uint8 capabilityFlags) external;
-    function uninstallHook(address hook) external;
+    function installHook(bytes calldata hookAndData, uint8 capabilityFlags) external;
+    function uninstallHook(address hookAddress) external;
+
+    function isInstalledHook(address hook) external view returns (bool);
 
     function listHook()
         external

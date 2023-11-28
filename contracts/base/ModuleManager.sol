@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {IModule} from "../interface/IModule.sol";
+import {IPluggable} from "../interface/IPluggable.sol";
 import {IModuleManager} from "../interface/IModuleManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {Authority} from "./Authority.sol";
@@ -12,27 +14,54 @@ abstract contract ModuleManager is IModuleManager, Authority {
     using SelectorLinkedList for mapping(bytes4 => bytes4);
 
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
+    error INVALID_MODULE();
+
+    event MODULE_UNINSTALL_WITHERROR(address indexed moduleAddress);
+
+    bytes4 private constant INTERFACE_ID_MODULE = type(IModule).interfaceId;
 
     function _moduleMapping() internal view returns (mapping(address => address) storage modules) {
         modules = AccountStorage.layout().modules;
     }
 
     function _isAuthorizedModule() internal view override returns (bool) {
-        address module = msg.sender;
-        if (!_moduleMapping().isExist(module)) {
-            return false;
-        }
-        mapping(address => mapping(bytes4 => bytes4)) storage moduleSelectors = AccountStorage.layout().moduleSelectors;
-        return moduleSelectors[module].isExist(msg.sig);
+        return _isAuthorizedModule(msg.sender);
     }
 
-    function _installModule(address module, bytes4[] calldata selectors) internal virtual {
+    function _isAuthorizedModule(address module) internal view returns (bool) {
+        return _moduleMapping().isExist(module);
+    }
+
+    function isInstalledModule(address module) external view override returns (bool) {
+        return _isAuthorizedModule(module);
+    }
+
+    function _installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) internal virtual {
         require(selectors.length > 0);
+        address moduleAddress = address(bytes20(moduleAndData[:20]));
+
+        try IModule(moduleAddress).supportsInterface(INTERFACE_ID_MODULE) returns (bool supported) {
+            if (supported == false) {
+                revert INVALID_MODULE();
+            }
+        } catch {
+            revert INVALID_MODULE();
+        }
+
         mapping(address => address) storage modules = _moduleMapping();
-        modules.add(module);
-        mapping(bytes4 => bytes4) storage moduleSelectors = AccountStorage.layout().moduleSelectors[module];
+        modules.add(moduleAddress);
+        mapping(bytes4 => bytes4) storage moduleSelectors = AccountStorage.layout().moduleSelectors[moduleAddress];
         for (uint256 i = 0; i < selectors.length; i++) {
             moduleSelectors.add(selectors[i]);
+        }
+        bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, moduleAndData[20:]);
+        bytes4 invalidModuleSelector = INVALID_MODULE.selector;
+        assembly ("memory-safe") {
+            let result := call(gas(), moduleAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
+            if iszero(result) {
+                mstore(0x00, invalidModuleSelector)
+                revert(0x00, 4)
+            }
         }
     }
 
@@ -40,18 +69,29 @@ abstract contract ModuleManager is IModuleManager, Authority {
         return _moduleMapping().isExist(module);
     }
 
-    function installModule(address module, bytes4[] calldata selectors) external virtual override onlySelfOrModule {
-        _installModule(module, selectors);
+    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors)
+        external
+        virtual
+        override
+        onlySelfOrModule
+    {
+        _installModule(moduleAndData, selectors);
     }
 
-    function _uninstallModule(address module) internal virtual {
+    function _uninstallModule(address moduleAddress) internal virtual {
         mapping(address => address) storage modules = _moduleMapping();
-        modules.remove(module);
-        AccountStorage.layout().moduleSelectors[module].clear();
+        modules.remove(moduleAddress);
+        AccountStorage.layout().moduleSelectors[moduleAddress].clear();
+
+        (bool success,) =
+            moduleAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+        if (!success) {
+            emit MODULE_UNINSTALL_WITHERROR(moduleAddress);
+        }
     }
 
-    function uninstallModule(address module) external virtual override onlySelfOrModule {
-        _uninstallModule(module);
+    function uninstallModule(address moduleAddress) external virtual override onlySelfOrModule {
+        _uninstallModule(moduleAddress);
     }
 
     function listModule()

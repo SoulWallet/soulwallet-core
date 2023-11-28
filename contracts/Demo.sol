@@ -27,8 +27,8 @@ contract SoulWallet is LightAccount {
     /**
      *  disable Module
      */
-    function installModule(address module, bytes4[] calldata selectors) external pure override {
-        (module, selectors);
+    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external pure override {
+        (moduleAndData, selectors);
         revert("disabled");
     }
 }

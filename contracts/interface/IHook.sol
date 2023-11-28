@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {UserOperation} from "../interface/IAccount.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IPluggable} from "./IPluggable.sol";
 
-interface IHook is IERC165 {
+interface IHook is IPluggable {
     /**
      * @dev Should return whether the signature provided is valid for the provided data
      * @param hash      Hash of the data to be signed

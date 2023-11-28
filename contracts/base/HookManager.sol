@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Authority} from "./Authority.sol";
 import {IHookManager} from "../interface/IHookManager.sol";
 import {IHook} from "../interface/IHook.sol";
+import {IPluggable} from "../interface/IPluggable.sol";
 import {IAccount, UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
@@ -16,12 +17,20 @@ abstract contract HookManager is Authority, IHookManager {
     error HOOK_NOT_EXISTS();
     error INVALID_HOOK_SIGNATURE();
 
+    event HOOK_UNINSTALL_WITHERROR(address indexed hookAddress);
+
     bytes4 private constant INTERFACE_ID_HOOK = type(IHook).interfaceId;
     uint8 private constant PRE_IS_VALID_SIGNATURE_HOOK = 1 << 0;
     uint8 private constant PRE_USER_OP_VALIDATION_HOOK = 1 << 1;
 
-    function _installHook(address hook, uint8 capabilityFlags) internal virtual {
-        try IHook(hook).supportsInterface(INTERFACE_ID_HOOK) returns (bool supported) {
+    function isInstalledHook(address hook) external view override returns (bool) {
+        return AccountStorage.layout().preUserOpValidationHook.isExist(hook)
+            || AccountStorage.layout().preIsValidSignatureHook.isExist(hook);
+    }
+
+    function _installHook(bytes calldata hookAndData, uint8 capabilityFlags) internal virtual {
+        address hookAddress = address(bytes20(hookAndData[:20]));
+        try IHook(hookAddress).supportsInterface(INTERFACE_ID_HOOK) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_HOOK();
             } else {
@@ -29,37 +38,53 @@ abstract contract HookManager is Authority, IHookManager {
                     revert INVALID_HOOK_TYPE();
                 }
                 if (capabilityFlags & PRE_IS_VALID_SIGNATURE_HOOK == PRE_IS_VALID_SIGNATURE_HOOK) {
-                    AccountStorage.layout().preIsValidSignatureHook.add(hook);
+                    AccountStorage.layout().preIsValidSignatureHook.add(hookAddress);
                 }
                 if (capabilityFlags & PRE_USER_OP_VALIDATION_HOOK == PRE_USER_OP_VALIDATION_HOOK) {
-                    AccountStorage.layout().preUserOpValidationHook.add(hook);
+                    AccountStorage.layout().preUserOpValidationHook.add(hookAddress);
                 }
             }
         } catch {
             revert INVALID_HOOK();
         }
-    }
 
-    function _uninstallHook(address hook) internal virtual {
-        if (
-            AccountStorage.layout().preIsValidSignatureHook.tryRemove(hook)
-                || AccountStorage.layout().preUserOpValidationHook.tryRemove(hook)
-        ) {
-            revert HOOK_NOT_EXISTS();
+        bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, hookAndData[20:]);
+        bytes4 invalidHookSelector = INVALID_HOOK.selector;
+        assembly ("memory-safe") {
+            let result := call(gas(), hookAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
+            if iszero(result) {
+                mstore(0x00, invalidHookSelector)
+                revert(0x00, 4)
+            }
         }
     }
 
-    function _cleanHook() internal virtual {
-        AccountStorage.layout().preIsValidSignatureHook.clear();
-        AccountStorage.layout().preUserOpValidationHook.clear();
+    function _uninstallHook(address hookAddress) internal virtual {
+        if (
+            AccountStorage.layout().preIsValidSignatureHook.tryRemove(hookAddress)
+                || AccountStorage.layout().preUserOpValidationHook.tryRemove(hookAddress)
+        ) {
+            revert HOOK_NOT_EXISTS();
+        }
+
+        (bool success,) =
+            hookAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+        if (!success) {
+            emit HOOK_UNINSTALL_WITHERROR(hookAddress);
+        }
     }
 
-    function installHook(address hook, uint8 capabilityFlags) external virtual override onlySelfOrModule {
-        _installHook(hook, capabilityFlags);
+    function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
+        external
+        virtual
+        override
+        onlySelfOrModule
+    {
+        _installHook(hookAndData, capabilityFlags);
     }
 
-    function uninstallHook(address hook) external virtual override onlySelfOrModule {
-        _uninstallHook(hook);
+    function uninstallHook(address hookAddress) external virtual override onlySelfOrModule {
+        _uninstallHook(hookAddress);
     }
 
     function listHook()

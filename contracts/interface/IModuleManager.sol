@@ -2,8 +2,10 @@
 pragma solidity ^0.8.20;
 
 interface IModuleManager {
-    function installModule(address module, bytes4[] calldata selectors) external;
-    function uninstallModule(address module) external;
+    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external;
+    function uninstallModule(address moduleAddress) external;
+
+    function isInstalledModule(address module) external view returns (bool);
 
     /**
      * @notice Provides a list of all added modules and their respective authorized function selectors
