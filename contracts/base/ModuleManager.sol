@@ -36,6 +36,10 @@ abstract contract ModuleManager is IModuleManager, Authority {
         }
     }
 
+    function isAuthorizedModule(address module) external view override returns (bool) {
+        return _moduleMapping().isExist(module);
+    }
+
     function installModule(address module, bytes4[] calldata selectors) external virtual override onlySelfOrModule {
         _installModule(module, selectors);
     }
