@@ -40,10 +40,16 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         _installValidator(validator);
     }
 
+    /**
+     * @dev install a validator
+     */
     function installValidator(address validator) external virtual override onlySelfOrModule {
         _installValidator(validator);
     }
 
+    /**
+     * @dev uninstall a validator
+     */
     function uninstallValidator(address validator) external virtual override onlySelfOrModule {
         _uninstallValidator(validator);
     }
@@ -53,6 +59,13 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         validators = validator.list(AddressLinkedList.SENTINEL_ADDRESS, validator.size());
     }
 
+    /**
+     * @dev EIP-1271
+     * @param hash hash of the data to be signed
+     * @param validator validator address
+     * @param validatorSignature Signature byte array associated with _data
+     * @return magicValue Magic value 0x1626ba7e if the validator is registered and signature is valid
+     */
     function _isValidSignature(bytes32 hash, address validator, bytes calldata validatorSignature)
         internal
         view
@@ -69,6 +82,14 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         }
     }
 
+    /**
+     * @dev validate UserOperation
+     * @param userOp UserOperation
+     * @param userOpHash UserOperation hash
+     * @param validator validator address
+     * @param validatorSignature validator signature
+     * @return validationData refer to https://github.com/eth-infinitism/account-abstraction/blob/v0.6.0/contracts/interfaces/IAccount.sol#L24-L30
+     */
     function _validateUserOp(
         UserOperation calldata userOp,
         bytes32 userOpHash,

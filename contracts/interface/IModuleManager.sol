@@ -22,6 +22,4 @@ interface IModuleManager {
      * @param func The function data to be executed
      */
     function executeFromModule(address dest, uint256 value, bytes calldata func) external;
-
-    function isAuthorizedModule(address module) external returns (bool);
 }

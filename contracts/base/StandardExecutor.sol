@@ -5,6 +5,13 @@ import {IStandardExecutor, Execution} from "../interface/IStandardExecutor.sol";
 import {EntryPointManager} from "./EntryPointManager.sol";
 
 abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
+    /**
+     * @dev execute method
+     * only entrypoint can call this method
+     * @param target the target address
+     * @param value the value
+     * @param data the data
+     */
     function execute(address target, uint256 value, bytes calldata data)
         external
         payable
@@ -23,6 +30,11 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
         }
     }
 
+    /**
+     * @dev execute batch method
+     * only entrypoint can call this method
+     * @param executions the executions
+     */
     function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
         for (uint256 i = 0; i < executions.length; i++) {
             Execution calldata execution = executions[i];
