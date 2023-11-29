@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-abstract contract EntryPointManager {
+import {Authority} from "./Authority.sol";
+
+abstract contract EntryPointManager is Authority {
     /**
      * @dev use immutable to save gas
      */
@@ -23,10 +25,9 @@ abstract contract EntryPointManager {
     /**
      * @notice Ensures the calling contract is the entrypoint
      */
-    modifier onlyEntryPoint() {
+    function _onlyEntryPoint() internal view override {
         if (msg.sender != _ENTRY_POINT) {
             revert CALLER_MUST_BE_ENTRY_POINT();
         }
-        _;
     }
 }

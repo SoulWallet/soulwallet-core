@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {Authority} from "./Authority.sol";
 import {IStandardExecutor, Execution} from "../interface/IStandardExecutor.sol";
 import {EntryPointManager} from "./EntryPointManager.sol";
 
-abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
+abstract contract StandardExecutor is Authority, IStandardExecutor, EntryPointManager {
     /**
      * @dev execute method
      * only entrypoint can call this method
@@ -12,13 +13,8 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
      * @param value the value
      * @param data the data
      */
-    function execute(address target, uint256 value, bytes calldata data)
-        external
-        payable
-        virtual
-        override
-        onlyEntryPoint
-    {
+    function execute(address target, uint256 value, bytes calldata data) external payable virtual override {
+        executorAccess();
         assembly ("memory-safe") {
             let ptr := mload(0x40)
             calldatacopy(ptr, data.offset, data.length)
@@ -35,7 +31,8 @@ abstract contract StandardExecutor is IStandardExecutor, EntryPointManager {
      * only entrypoint can call this method
      * @param executions the executions
      */
-    function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
+    function executeBatch(Execution[] calldata executions) external payable virtual override {
+        executorAccess();
         for (uint256 i = 0; i < executions.length; i++) {
             Execution calldata execution = executions[i];
             address target = execution.target;

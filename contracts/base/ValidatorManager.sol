@@ -43,14 +43,16 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
     /**
      * @dev install a validator
      */
-    function installValidator(address validator) external virtual override onlySelfOrModule {
+    function installValidator(address validator) external virtual override {
+        validatorManagementAccess();
         _installValidator(validator);
     }
 
     /**
      * @dev uninstall a validator
      */
-    function uninstallValidator(address validator) external virtual override onlySelfOrModule {
+    function uninstallValidator(address validator) external virtual override {
+        validatorManagementAccess();
         _uninstallValidator(validator);
     }
 

@@ -101,12 +101,8 @@ abstract contract HookManager is Authority, IHookManager {
      * @param hookAndData [0:20]: hook address, [20:]: hook data
      * @param capabilityFlags Capability flags for the hook
      */
-    function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
-        external
-        virtual
-        override
-        onlySelfOrModule
-    {
+    function installHook(bytes calldata hookAndData, uint8 capabilityFlags) external virtual override {
+        pluginManagementAccess();
         _installHook(address(bytes20(hookAndData[:20])), hookAndData[20:], capabilityFlags);
     }
 
@@ -114,7 +110,8 @@ abstract contract HookManager is Authority, IHookManager {
      * @dev Uninstall a hook
      * @param hookAddress The address of the hook
      */
-    function uninstallHook(address hookAddress) external virtual override onlySelfOrModule {
+    function uninstallHook(address hookAddress) external virtual override {
+        pluginManagementAccess();
         _uninstallHook(hookAddress);
     }
 

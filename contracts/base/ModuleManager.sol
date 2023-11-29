@@ -82,12 +82,8 @@ abstract contract ModuleManager is IModuleManager, Authority {
      * @param moduleAndData [0:20]: module address, [20:]: module init data
      * @param selectors function selectors that the module is allowed to call
      */
-    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors)
-        external
-        virtual
-        override
-        onlySelfOrModule
-    {
+    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external virtual override {
+        pluginManagementAccess();
         _installModule(address(bytes20(moduleAndData[:20])), moduleAndData[20:], selectors);
     }
 
@@ -111,7 +107,8 @@ abstract contract ModuleManager is IModuleManager, Authority {
      * @dev uninstall a module
      * @param moduleAddress module address
      */
-    function uninstallModule(address moduleAddress) external virtual override onlySelfOrModule {
+    function uninstallModule(address moduleAddress) external virtual override {
+        pluginManagementAccess();
         _uninstallModule(moduleAddress);
     }
 

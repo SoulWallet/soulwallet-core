@@ -44,9 +44,9 @@ contract LightAccount is
         payable
         virtual
         override
-        onlyEntryPoint
         returns (uint256 validationData)
     {
+        _onlyEntryPoint();
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
             SignatureDecoder.signatureSplit(userOp.signature);
 

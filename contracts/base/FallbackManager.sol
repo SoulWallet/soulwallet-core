@@ -38,7 +38,8 @@ abstract contract FallbackManager is IFallbackManager, Authority {
      * @notice Sets the address of the fallback handler and emits the FallbackChanged event
      * @param fallbackContract The address of the new fallback handler
      */
-    function setFallbackHandler(address fallbackContract) external virtual override onlySelfOrModule {
+    function setFallbackHandler(address fallbackContract) external virtual override {
+        fallbackManagementAccess();
         _setFallbackHandler(fallbackContract);
         emit FallbackChanged(fallbackContract);
     }

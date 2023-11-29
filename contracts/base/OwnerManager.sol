@@ -47,7 +47,8 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @notice add an owner
      * @param owner Address in bytes32 format to add
      */
-    function addOwner(bytes32 owner) external virtual override onlySelfOrModule {
+    function addOwner(bytes32 owner) external virtual override {
+        ownerManagementAccess();
         _addOwner(owner);
     }
 
@@ -63,7 +64,8 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @notice remove an owner
      * @param owner Address in bytes32 format to remove
      */
-    function removeOwner(bytes32 owner) external virtual override onlySelfOrModule {
+    function removeOwner(bytes32 owner) external virtual override {
+        ownerManagementAccess();
         _removeOwner(owner);
     }
 
@@ -72,7 +74,8 @@ abstract contract OwnerManager is IOwnerManager, Authority {
         _ownerMapping().add(newOwner);
     }
 
-    function resetOwner(bytes32 newOwner) external virtual override onlySelfOrModule {
+    function resetOwner(bytes32 newOwner) external virtual override {
+        ownerManagementAccess();
         _resetOwner(newOwner);
     }
 
