@@ -36,6 +36,6 @@ contract SoulWallet is LightAccount {
      * (e.g. only allowing management of the owner through an MPC wallet)
      */
     function ownerManagementAccess() internal view override {
-        require(msg.sender == address(1), /* Assuming address(1) is an MPC wallet */ "caller must be entry point");
+        require(msg.sender == address(1) /* Assuming address(1) is an MPC wallet */ );
     }
 }
