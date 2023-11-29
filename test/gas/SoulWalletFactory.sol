@@ -6,7 +6,7 @@ pragma solidity ^0.8.20;
 /* solhint-disable reason-string */
 
 import "./SoulWalletProxy.sol";
-import "./PureWallet.sol";
+import "../../examples/BasicModularAccount.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";

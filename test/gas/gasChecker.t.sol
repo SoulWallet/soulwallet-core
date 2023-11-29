@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {PureWallet} from "./pureWallet.sol";
+import {BasicModularAccount} from "../../examples/BasicModularAccount.sol";
 
 import {Execution} from "@source/interface/IStandardExecutor.sol";
 import "@source/validators/BuildinEOAValidator.sol";
@@ -20,7 +20,7 @@ contract GasCheckerTest is Test {
 
     IEntryPoint entryPoint;
     SoulWalletFactory walletFactory;
-    PureWallet walletImpl;
+    BasicModularAccount walletImpl;
 
     BuildinEOAValidator validator;
     ReceiverHandler _fallback;
@@ -34,7 +34,7 @@ contract GasCheckerTest is Test {
 
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
-        walletImpl = new PureWallet(address(entryPoint));
+        walletImpl = new BasicModularAccount(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
 
         validator = new BuildinEOAValidator();
@@ -93,13 +93,12 @@ contract GasCheckerTest is Test {
         bytes32 salt = 0;
         bytes memory initializer;
         {
-            bytes32[] memory owners = new bytes32[](1);
-            owners[0] = bytes32(uint256(uint160(walletOwner1)));
-            //owners[1] = bytes32(uint256(uint160(walletOwner2)));
+            bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
             address defaultValidator = address(validator);
             address defaultFallback = address(_fallback);
-            initializer =
-                abi.encodeWithSelector(PureWallet.initialize.selector, owners, defaultValidator, defaultFallback);
+            initializer = abi.encodeWithSelector(
+                BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
+            );
         }
         sender = walletFactory.getWalletAddress(initializer, salt);
         //console.log("sender", sender);
