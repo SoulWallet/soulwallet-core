@@ -1,5 +1,5 @@
 {
-    "name": "light-account",
+    "name": "soulwalletcore",
     "scripts": {
         "build": "forge build --sizes",
         "test": "forge test -vvv",

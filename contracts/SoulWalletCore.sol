@@ -12,7 +12,7 @@ import {HookManager} from "./base/HookManager.sol";
 import {SignatureDecoder} from "./utils/SignatureDecoder.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
-contract LightAccount is
+contract SoulWalletCore is
     IAccount,
     IERC1271,
     EntryPointManager,

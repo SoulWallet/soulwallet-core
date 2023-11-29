@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LightAccount} from "./LightAccount.sol";
+import {SoulWalletCore} from "./SoulWalletCore.sol";
 
-contract SoulWallet is LightAccount {
+contract SoulWallet is SoulWalletCore {
     address internal immutable _DEFAULT_VALIDATOR;
 
-    constructor(address _entryPoint, bytes32[] memory _owners, address defaultValidator) LightAccount(_entryPoint) {
+    constructor(address _entryPoint, bytes32[] memory _owners, address defaultValidator) SoulWalletCore(_entryPoint) {
         for (uint256 i = 0; i < _owners.length; i++) {
             _addOwner(_owners[i]);
         }

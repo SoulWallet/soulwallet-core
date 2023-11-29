@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {LightAccount} from "@source/LightAccount.sol";
+import {SoulWalletCore} from "@source/SoulWalletCore.sol";
 
-contract PureWallet is LightAccount {
+contract PureWallet is SoulWalletCore {
     uint256 private _initialized;
 
-    constructor(address _entryPoint) LightAccount(_entryPoint) {
+    constructor(address _entryPoint) SoulWalletCore(_entryPoint) {
         require(_initialized == 0);
         _initialized = 1;
     }
