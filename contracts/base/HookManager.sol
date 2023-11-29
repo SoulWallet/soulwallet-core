@@ -27,8 +27,8 @@ abstract contract HookManager is Authority, IHookManager {
             0x02: preUserOpValidationHook: execute before validateUserOp
      */
 
-    uint8 private constant PRE_IS_VALID_SIGNATURE_HOOK = 1 << 0;
-    uint8 private constant PRE_USER_OP_VALIDATION_HOOK = 1 << 1;
+    uint8 internal constant PRE_IS_VALID_SIGNATURE_HOOK = 1 << 0;
+    uint8 internal constant PRE_USER_OP_VALIDATION_HOOK = 1 << 1;
 
     /**
      * @dev Check if the hook is installed
@@ -82,10 +82,9 @@ abstract contract HookManager is Authority, IHookManager {
      * @param hookAddress The address of the hook
      */
     function _uninstallHook(address hookAddress) internal virtual {
-        if (
-            AccountStorage.layout().preIsValidSignatureHook.tryRemove(hookAddress)
-                || AccountStorage.layout().preUserOpValidationHook.tryRemove(hookAddress)
-        ) {
+        bool removed1 = AccountStorage.layout().preIsValidSignatureHook.tryRemove(hookAddress);
+        bool removed2 = AccountStorage.layout().preUserOpValidationHook.tryRemove(hookAddress);
+        if (removed1 == false && removed2 == false) {
             revert HOOK_NOT_EXISTS();
         }
 

@@ -1,8 +1,14 @@
 {
     "name": "soulwalletcore",
+    "type": "module",
     "scripts": {
         "build": "forge build --sizes",
         "test": "forge test -vvv",
-        "gasCheck": "forge test -vv --match-contract 'GasCheckerTest' | grep -E 'gas checker|-----'"
+        "gasCheck": "node test/gas/gasChecker.js",
+        "gasUpdate": "node test/gas/gasChecker.js --update"
+    },
+    "devDependencies": {
+        "chalk": "^5.3.0",
+        "shelljs": "^0.8.5"
     }
 }

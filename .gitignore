@@ -18,3 +18,5 @@ docs/
 **/artifacts/
 compiler_config.json
 .deps/
+node_modules
+package-lock.json
