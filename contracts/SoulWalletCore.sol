@@ -39,6 +39,18 @@ contract SoulWalletCore is
         return _isValidSignature(hash, validator, validatorSignature);
     }
 
+    /**
+     * @dev If you need to redefine the signatures structure, please override this function.
+     */
+    function _decodeSignature(bytes calldata signature)
+        internal
+        pure
+        virtual
+        returns (address validator, bytes calldata validatorSignature, bytes calldata hookSignature)
+    {
+        return SignatureDecoder.signatureSplit(signature);
+    }
+
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         public
         payable
@@ -48,7 +60,7 @@ contract SoulWalletCore is
     {
         _onlyEntryPoint();
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
-            SignatureDecoder.signatureSplit(userOp.signature);
+            _decodeSignature(userOp.signature);
 
         if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature) == false) {
             return SIG_VALIDATION_FAILED;

@@ -17,6 +17,21 @@ contract MinimumAccount is SoulWalletCore, BuildinEOAValidator {
 
     function initialize(bytes32 owner) external initializer {
         _addOwner(owner);
-        _installValidator(this);
+        _installValidator(address(this));
+    }
+
+    /**
+     * @dev If you need to redefine the signatures structure, please override this function.
+     */
+    function _decodeSignature(bytes calldata signature)
+        internal
+        pure
+        override
+        returns (address validator, bytes calldata validatorSignature, bytes calldata hookSignature)
+    {
+        (validator, validatorSignature, hookSignature) = super._decodeSignature(signature);
+        if (validator == address(0)) {
+            validator = address(this);
+        }
     }
 }
