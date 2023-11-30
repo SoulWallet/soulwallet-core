@@ -35,7 +35,17 @@ contract SoulWalletCore is
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
             SignatureDecoder.signatureSplit(signature);
 
-        if (_preIsValidSignatureHook(hash, hookSignature) == false) return bytes4(0);
+        /*
+            Warning!!!
+                This function uses `return` to terminate the execution of the entire contract.
+                If any `Hook` fails, this function will stop the contract's execution and
+                return `bytes4(0)`, skipping all the subsequent unexecuted code.
+        */
+        _preIsValidSignatureHook(hash, hookSignature);
+
+        /*
+            When any hook execution fails, this line will not be executed.
+         */
         return _isValidSignature(hash, validator, validatorSignature);
     }
 

@@ -2,12 +2,12 @@
 
 | Name | Gas Used |
 | ---- | -------- |
-| ERC20 batch transfer | 46971 |
-| ETH batch transfer | 56717 |
-| Deploy Account | 374976 |
-| ERC20 transfer | 92244 |
-| ETH transfer | 103765 |
-| Install 1 Hook | 166360 |
-| Uninstall 1 Hook | 78968 |
-| Install 2 Hooks | 77457 |
-| ETH transfer (2 Hooks) | 74840 |
+| ERC20 batch transfer | 46960 |
+| ETH batch transfer | 56706 |
+| Deploy Account | 374940 |
+| ERC20 transfer | 92208 |
+| ETH transfer | 103729 |
+| Install 1 Hook | 166308 |
+| Uninstall 1 Hook | 78918 |
+| Install 2 Hooks | 77418 |
+| ETH transfer (2 Hooks) | 74804 |

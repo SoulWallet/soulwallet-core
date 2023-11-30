@@ -192,12 +192,7 @@ abstract contract HookManager is Authority, IHookManager {
      * @param hash The hash of the data to be signed
      * @param hookSignatures The hook signatures
      */
-    function _preIsValidSignatureHook(bytes32 hash, bytes calldata hookSignatures)
-        internal
-        view
-        virtual
-        returns (bool)
-    {
+    function _preIsValidSignatureHook(bytes32 hash, bytes calldata hookSignatures) internal view virtual {
         address _hookAddr;
         uint256 _cursorFrom;
         uint256 _cursorEnd;
@@ -219,18 +214,30 @@ abstract contract HookManager is Authority, IHookManager {
                 currentHookSignature = hookSignatures[0:0];
             }
 
-            try IHook(addr).preIsValidSignatureHook(hash, currentHookSignature) {}
-            catch {
-                return false;
+            bytes memory callData =
+                abi.encodeWithSelector(IHook.preIsValidSignatureHook.selector, hash, currentHookSignature);
+            assembly ("memory-safe") {
+                // memorySafe: The scratch space between memory offset 0 and 64.
+
+                let result := staticcall(gas(), addr, add(callData, 0x20), mload(callData), 0x00, 0x00)
+                if iszero(result) {
+                    /*
+                        Warning!!!
+                            This function uses `return` to terminate the execution of the entire contract.
+                            If any `Hook` fails, this function will stop the contract's execution and
+                            return `bytes4(0)`, skipping all the subsequent unexecuted code.
+                     */
+                    mstore(0x00, 0x00000000)
+                    return(0x00, 0x20)
+                }
             }
+
             addr = preIsValidSignatureHook[addr];
         }
 
         if (_hookAddr != address(0)) {
             revert INVALID_HOOK_SIGNATURE();
         }
-
-        return true;
     }
 
     /**
