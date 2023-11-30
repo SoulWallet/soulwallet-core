@@ -69,6 +69,8 @@ abstract contract ModuleManager is IModuleManager, Authority {
         bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
         bytes4 invalidModuleSelector = INVALID_MODULE.selector;
         assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
             let result := call(gas(), moduleAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
             if iszero(result) {
                 mstore(0x00, invalidModuleSelector)
@@ -173,13 +175,21 @@ abstract contract ModuleManager is IModuleManager, Authority {
         require(_isAuthorizedModule());
 
         if (dest == address(this)) revert MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
-        assembly {
-            /* not memory-safe */
-            let result := call(gas(), dest, value, add(func, 0x20), mload(func), 0, 0)
-            if iszero(result) {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
+        assembly ("memory-safe") {
+            // memorySafe: Memory allocated by yourself using a mechanism like the allocate function described above.
+
+            function allocate(length) -> pos {
+                pos := mload(0x40)
+                mstore(0x40, add(pos, length))
             }
+
+            let result := call(gas(), dest, value, add(func, 0x20), mload(func), 0, 0)
+
+            let returndataPtr := allocate(returndatasize())
+            returndatacopy(returndataPtr, 0, returndatasize())
+
+            if iszero(result) { revert(returndataPtr, returndatasize()) }
+            return(returndataPtr, returndatasize())
         }
     }
 }

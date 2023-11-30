@@ -60,7 +60,7 @@ contract SoulWalletCore is
     {
         _onlyEntryPoint();
 
-        assembly {
+        assembly ("memory-safe") {
             if missingAccountFunds {
                 // ignore failure (its EntryPoint's job to verify, not account.)
                 pop(call(gas(), caller(), missingAccountFunds, 0x00, 0x00, 0x00, 0x00))

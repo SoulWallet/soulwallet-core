@@ -50,6 +50,8 @@ abstract contract HookManager is Authority, IHookManager {
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
         bytes4 invalidHookSelector = INVALID_HOOK.selector;
         assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
             // IHook(hookAddress).supportsInterface(INTERFACE_ID_HOOK)
             let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
             if iszero(result) {
@@ -76,6 +78,8 @@ abstract contract HookManager is Authority, IHookManager {
 
         callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
         assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
             let result := call(gas(), hookAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
             if iszero(result) {
                 mstore(0x00, invalidHookSelector)
@@ -176,7 +180,7 @@ abstract contract HookManager is Authority, IHookManager {
                 _hookAddr := shr(0x60, calldataload(ptr))
                 if iszero(_hookAddr) { revert(0, 0) }
                 _cursorFrom := add(cursor, 24) //20+4
-                let guardSigLen := shr(0xE0, calldataload(add(ptr, 20)))
+                let guardSigLen := shr(0xe0, calldataload(add(ptr, 20)))
                 _cursorEnd := add(_cursorFrom, guardSigLen)
             }
         }
@@ -266,6 +270,8 @@ abstract contract HookManager is Authority, IHookManager {
                 IHook.preUserOpValidationHook.selector, userOp, userOpHash, missingAccountFunds, currentHookSignature
             );
             assembly ("memory-safe") {
+                // memorySafe: The scratch space between memory offset 0 and 64.
+
                 let result := call(gas(), addr, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
                 if iszero(result) {
                     mstore(0x00, false)

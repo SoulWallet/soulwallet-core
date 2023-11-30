@@ -23,14 +23,23 @@ abstract contract FallbackManager is IFallbackManager, Authority {
      */
     fallback() external payable virtual {
         address fallbackContract = AccountStorage.layout().defaultFallbackContract;
-        assembly {
-            /* not memory-safe */
-            calldatacopy(0, 0, calldatasize())
-            let result := staticcall(not(0), fallbackContract, 0, calldatasize(), 0, 0)
-            returndatacopy(0, 0, returndatasize())
-            switch result
-            case 0 { revert(0, returndatasize()) }
-            default { return(0, returndatasize()) }
+        assembly ("memory-safe") {
+            function allocate(length) -> pos {
+                pos := mload(0x40)
+                mstore(0x40, add(pos, length))
+            }
+
+            if iszero(fallbackContract) { return(0, 0) }
+            let calldataPtr := allocate(calldatasize())
+            calldatacopy(calldataPtr, 0, calldatasize())
+
+            let result := staticcall(gas(), fallbackContract, calldataPtr, calldatasize(), 0, 0)
+
+            let returndataPtr := allocate(returndatasize())
+            returndatacopy(returndataPtr, 0, returndatasize())
+
+            if iszero(result) { revert(returndataPtr, returndatasize()) }
+            return(returndataPtr, returndatasize())
         }
     }
 

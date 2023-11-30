@@ -15,13 +15,25 @@ abstract contract StandardExecutor is Authority, IStandardExecutor, EntryPointMa
      */
     function execute(address target, uint256 value, bytes calldata data) external payable virtual override {
         executorAccess();
+
         assembly ("memory-safe") {
-            let ptr := mload(0x40)
-            calldatacopy(ptr, data.offset, data.length)
-            let result := call(gas(), target, value, ptr, data.length, 0, 0)
+            // memorySafe: Memory allocated by yourself using a mechanism like the allocate function described above.
+
+            function allocate(length) -> pos {
+                pos := mload(0x40)
+                mstore(0x40, add(pos, length))
+            }
+
+            let calldataPtr := allocate(data.length)
+            calldatacopy(calldataPtr, data.offset, data.length)
+
+            let result := call(gas(), target, value, calldataPtr, data.length, 0, 0)
+
+            // note: return data is ignored
             if iszero(result) {
-                returndatacopy(ptr, 0, returndatasize())
-                revert(ptr, returndatasize())
+                let returndataPtr := allocate(returndatasize())
+                returndatacopy(returndataPtr, 0, returndatasize())
+                revert(returndataPtr, returndatasize())
             }
         }
     }
@@ -33,6 +45,7 @@ abstract contract StandardExecutor is Authority, IStandardExecutor, EntryPointMa
      */
     function executeBatch(Execution[] calldata executions) external payable virtual override {
         executorAccess();
+
         for (uint256 i = 0; i < executions.length; i++) {
             Execution calldata execution = executions[i];
             address target = execution.target;
@@ -40,12 +53,23 @@ abstract contract StandardExecutor is Authority, IStandardExecutor, EntryPointMa
             bytes calldata data = execution.data;
 
             assembly ("memory-safe") {
-                let ptr := mload(0x40)
-                calldatacopy(ptr, data.offset, data.length)
-                let result := call(gas(), target, value, ptr, data.length, 0, 0)
+                // memorySafe: Memory allocated by yourself using a mechanism like the allocate function described above.
+
+                function allocate(length) -> pos {
+                    pos := mload(0x40)
+                    mstore(0x40, add(pos, length))
+                }
+
+                let calldataPtr := allocate(data.length)
+                calldatacopy(calldataPtr, data.offset, data.length)
+
+                let result := call(gas(), target, value, calldataPtr, data.length, 0, 0)
+
+                // note: return data is ignored
                 if iszero(result) {
-                    returndatacopy(ptr, 0, returndatasize())
-                    revert(ptr, returndatasize())
+                    let returndataPtr := allocate(returndatasize())
+                    returndatacopy(returndataPtr, 0, returndatasize())
+                    revert(returndataPtr, returndatasize())
                 }
             }
         }
