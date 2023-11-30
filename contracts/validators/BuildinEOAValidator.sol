@@ -6,6 +6,7 @@ import {UserOperation} from "../interface/IAccount.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IOwnable} from "../interface/IOwnable.sol";
+import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../utils/Constants.sol";
 
 contract BuildinEOAValidator is IValidator {
     using ECDSA for bytes32;
@@ -15,12 +16,6 @@ contract BuildinEOAValidator is IValidator {
     bytes4 private constant MAGICVALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
-
-    //return value in case of signature failure, with no time-range.
-    // equivalent to _packValidationData(true,0,0);
-    uint256 internal constant SIG_VALIDATION_FAILED = 1;
-
-    uint256 internal constant SIG_VALIDATION_SUCCESS = 0;
 
     function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
         return interfaceId == INTERFACE_ID_VALIDATOR;

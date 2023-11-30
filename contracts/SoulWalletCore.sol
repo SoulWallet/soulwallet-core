@@ -66,14 +66,20 @@ contract SoulWalletCore is
                 pop(call(gas(), caller(), missingAccountFunds, 0x00, 0x00, 0x00, 0x00))
             }
         }
-
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
             _decodeSignature(userOp.signature);
 
-        if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature) == false) {
-            return SIG_VALIDATION_FAILED;
-        }
+        /*
+            Warning!!!
+                This function uses `return` to terminate the execution of the entire contract.
+                If any `Hook` fails, this function will stop the contract's execution and
+                return `SIG_VALIDATION_FAILED`, skipping all the subsequent unexecuted code.
+        */
+        _preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature);
 
+        /*
+            When any hook execution fails, this line will not be executed.
+         */
         return _validateUserOp(userOp, userOpHash, validator, validatorSignature);
     }
 }

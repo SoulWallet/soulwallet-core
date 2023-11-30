@@ -7,15 +7,12 @@ import {IValidator} from "../interface/IValidator.sol";
 import {UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
+import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 
 abstract contract ValidatorManager is Authority, IValidatorManager {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_VALIDATOR();
-
-    //return value in case of signature failure, with no time-range.
-    // equivalent to _packValidationData(true,0,0);
-    uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
 
@@ -110,10 +107,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
             // memorySafe: The scratch space between memory offset 0 and 64.
 
             let result := call(gas(), validator, 0, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if iszero(result) {
-                mstore(0x00, SIG_VALIDATION_FAILED)
-                return(0x00, 0x20)
-            }
+            if iszero(result) { mstore(0x00, SIG_VALIDATION_FAILED) }
             validationData := mload(0x00)
         }
     }

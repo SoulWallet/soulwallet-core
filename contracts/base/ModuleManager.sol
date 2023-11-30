@@ -26,15 +26,18 @@ abstract contract ModuleManager is IModuleManager, Authority {
 
     /**
      * @dev checks whether the caller is a authorized module
+     *  caller: msg.sender
+     *  method: msg.sig
+     * @return bool
      */
     function _isAuthorizedModule() internal view override returns (bool) {
-        return _isAuthorizedModule(msg.sender);
+        return AccountStorage.layout().moduleSelectors[msg.sender].isExist(msg.sig);
     }
 
     /**
      * @dev checks whether a address is a authorized module
      */
-    function _isAuthorizedModule(address module) internal view returns (bool) {
+    function _isInstalledModule(address module) internal view returns (bool) {
         return _moduleMapping().isExist(module);
     }
 
@@ -42,7 +45,7 @@ abstract contract ModuleManager is IModuleManager, Authority {
      * @dev checks whether a address is a installed module
      */
     function isInstalledModule(address module) external view override returns (bool) {
-        return _isAuthorizedModule(module);
+        return _isInstalledModule(module);
     }
 
     /**

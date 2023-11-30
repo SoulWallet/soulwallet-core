@@ -6,16 +6,16 @@ import {BasicModularAccount} from "../../examples/BasicModularAccount.sol";
 
 import {Execution} from "@source/interface/IStandardExecutor.sol";
 import "@source/validators/BuildinEOAValidator.sol";
-import {ReceiverHandler} from "./ReceiverHandler.sol";
+import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
-import {DeployEntryPoint} from "../deployEntryPoint.sol";
-import {SoulWalletFactory} from "./SoulWalletFactory.sol";
+import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
+import {SoulWalletFactory} from "../dev/SoulWalletFactory.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
-import {TokenERC20} from "./TokenERC20.sol";
-import {DemoHook} from "./demoHook.sol";
-import {DemoModule} from "./demoModule.sol";
+import {TokenERC20} from "../dev/TokenERC20.sol";
+import {DemoHook} from "../dev/demoHook.sol";
+import {DemoModule} from "../dev/demoModule.sol";
 
 contract GasCheckerTest is Test {
     using MessageHashUtils for bytes32;

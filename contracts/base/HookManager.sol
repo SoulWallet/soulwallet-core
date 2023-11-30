@@ -9,6 +9,7 @@ import {IAccount, UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 
 abstract contract HookManager is Authority, IHookManager {
     using AddressLinkedList for mapping(address => address);
@@ -234,6 +235,14 @@ abstract contract HookManager is Authority, IHookManager {
 
     /**
      * @dev Call preUserOpValidationHook for all installed hooks
+     *
+     * Warning!!!
+     *  This function uses `return` to terminate the execution of the entire contract.
+     *  If any `Hook` fails, this function will stop the contract's execution and
+     *  return `SIG_VALIDATION_FAILED`, skipping all the subsequent unexecuted code.
+     *
+     *
+     *
      * @param userOp The UserOperation
      * @param userOpHash The hash of the UserOperation
      * @param missingAccountFunds The missing account funds
@@ -244,7 +253,7 @@ abstract contract HookManager is Authority, IHookManager {
         bytes32 userOpHash,
         uint256 missingAccountFunds,
         bytes calldata hookSignatures
-    ) internal virtual returns (bool) {
+    ) internal virtual {
         address _hookAddr;
         uint256 _cursorFrom;
         uint256 _cursorEnd;
@@ -274,7 +283,13 @@ abstract contract HookManager is Authority, IHookManager {
 
                 let result := call(gas(), addr, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
                 if iszero(result) {
-                    mstore(0x00, false)
+                    /*
+                        Warning!!!
+                            This function uses `return` to terminate the execution of the entire contract.
+                            If any `Hook` fails, this function will stop the contract's execution and
+                            return `SIG_VALIDATION_FAILED`, skipping all the subsequent unexecuted code.
+                     */
+                    mstore(0x00, SIG_VALIDATION_FAILED)
                     return(0x00, 0x20)
                 }
             }
@@ -285,7 +300,5 @@ abstract contract HookManager is Authority, IHookManager {
         if (_hookAddr != address(0)) {
             revert INVALID_HOOK_SIGNATURE();
         }
-
-        return true;
     }
 }
