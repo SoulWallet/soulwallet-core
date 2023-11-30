@@ -27,12 +27,7 @@ contract BuildinEOAValidator is IValidator {
     }
 
     function _packHash(bytes32 hash) internal view returns (bytes32) {
-        uint256 _chainid;
-        assembly {
-            _chainid := chainid()
-        }
-        address account = msg.sender;
-        return keccak256(abi.encode(hash, account, _chainid));
+        return keccak256(abi.encode(hash, msg.sender, block.chainid));
     }
 
     function _isOwner(address addr) private view returns (bool isOwner) {
@@ -76,7 +71,7 @@ contract BuildinEOAValidator is IValidator {
         if (validatorSignature.length != 65) {
             return SIG_VALIDATION_FAILED;
         }
-        bytes32 r = bytes32(validatorSignature[0:0x20]);
+        bytes32 r = bytes32(validatorSignature[0x00:0x20]);
         bytes32 s = bytes32(validatorSignature[0x20:0x40]);
         uint8 v = uint8(bytes1(validatorSignature[0x40:0x41]));
         (address recoveredAddr, ECDSA.RecoverError error,) =
