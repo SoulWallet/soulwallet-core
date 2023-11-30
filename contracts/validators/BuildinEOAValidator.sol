@@ -16,6 +16,12 @@ contract BuildinEOAValidator is IValidator {
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
 
+    //return value in case of signature failure, with no time-range.
+    // equivalent to _packValidationData(true,0,0);
+    uint256 internal constant SIG_VALIDATION_FAILED = 1;
+
+    uint256 internal constant SIG_VALIDATION_SUCCESS = 0;
+
     function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
         return interfaceId == INTERFACE_ID_VALIDATOR;
     }
@@ -29,25 +35,34 @@ contract BuildinEOAValidator is IValidator {
         return keccak256(abi.encode(hash, account, _chainid));
     }
 
-    function isValidSignature(bytes32 hash, bytes calldata validatorSignature)
+    function _isOwner(address addr) private view returns (bool isOwner) {
+        bytes memory callData = abi.encodeWithSelector(IOwnable.isOwner.selector, bytes32(uint256(uint160(addr))));
+        assembly ("memory-safe") {
+            // IOwnable(msg.sender).isOwner(bytes32(uint256(uint160(addr)))) returns (bool result)
+            let result := staticcall(gas(), caller(), add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if result { isOwner := mload(0x00) }
+        }
+    }
+
+    function validateSignature(bytes32 hash, bytes calldata validatorSignature)
         external
         view
         override
         returns (bytes4 magicValue)
     {
+        if (validatorSignature.length != 65) {
+            return bytes4(0);
+        }
+        bytes32 r = bytes32(validatorSignature[0:0x20]);
+        bytes32 s = bytes32(validatorSignature[0x20:0x40]);
+        uint8 v = uint8(bytes1(validatorSignature[0x40:0x41]));
+
         (address recoveredAddr, ECDSA.RecoverError error,) =
-            ECDSA.tryRecover(_packHash(hash).toEthSignedMessageHash(), validatorSignature);
+            ECDSA.tryRecover(_packHash(hash).toEthSignedMessageHash(), v, r, s);
         if (error != ECDSA.RecoverError.NoError) {
             return bytes4(0);
         }
-        try IOwnable(msg.sender).isOwner(bytes32(uint256(uint160(recoveredAddr)))) returns (bool result) {
-            if (result) {
-                return MAGICVALUE;
-            }
-            return bytes4(0);
-        } catch {
-            return bytes4(0);
-        }
+        return _isOwner(recoveredAddr) ? MAGICVALUE : bytes4(0);
     }
 
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
@@ -57,18 +72,18 @@ contract BuildinEOAValidator is IValidator {
         returns (uint256 validationData)
     {
         (userOp);
+
+        if (validatorSignature.length != 65) {
+            return SIG_VALIDATION_FAILED;
+        }
+        bytes32 r = bytes32(validatorSignature[0:0x20]);
+        bytes32 s = bytes32(validatorSignature[0x20:0x40]);
+        uint8 v = uint8(bytes1(validatorSignature[0x40:0x41]));
         (address recoveredAddr, ECDSA.RecoverError error,) =
-            ECDSA.tryRecover(_packHash(userOpHash).toEthSignedMessageHash(), validatorSignature);
+            ECDSA.tryRecover(_packHash(userOpHash).toEthSignedMessageHash(), v, r, s);
         if (error != ECDSA.RecoverError.NoError) {
-            return 1;
+            return SIG_VALIDATION_FAILED;
         }
-        try IOwnable(msg.sender).isOwner(bytes32(uint256(uint160(recoveredAddr)))) returns (bool result) {
-            if (result) {
-                return 0;
-            }
-            return 1;
-        } catch {
-            return 1;
-        }
+        return _isOwner(recoveredAddr) ? SIG_VALIDATION_SUCCESS : SIG_VALIDATION_FAILED;
     }
 }

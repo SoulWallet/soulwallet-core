@@ -6,26 +6,20 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface IValidator is IERC165 {
     /**
-     * @dev Should return whether the signature provided is valid for the provided data
+     * @dev EIP-1271 Should return whether the signature provided is valid for the provided data
      * @param hash      Hash of the data to be signed
      * @param validatorSignature Signature byte array associated with _data
      */
-    function isValidSignature(bytes32 hash, bytes memory validatorSignature)
+    function validateSignature(bytes32 hash, bytes memory validatorSignature)
         external
         view
         returns (bytes4 magicValue);
 
     /**
-     * Validate user's signature and nonce
-     * the entryPoint will make the call to the recipient only if this validation call returns successfully.
-     * signature failure should be reported by returning SIG_VALIDATION_FAILED (1).
-     * This allows making a "simulation call" without a valid signature
-     * Other failures (e.g. nonce mismatch, or invalid signature format) should still revert to signal failure.
-     *
-     * @dev Must validate caller is the entryPoint.
-     *      Must validate the signature and nonce
+     * @dev EIP-4337
      * @param userOp the operation that is about to be executed.
      * @param userOpHash hash of the user's request data. can be used as the basis for signature.
+     * @param validatorSignature Signature
      * @return validationData packaged ValidationData structure. use `_packValidationData` and `_unpackValidationData` to encode and decode
      *      <20-byte> sigAuthorizer - 0 for valid signature, 1 to mark signature failure,
      *         otherwise, an address of an "authorizer" contract.

@@ -8,6 +8,7 @@ import {IPluggable} from "../interface/IPluggable.sol";
 import {IAccount, UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract HookManager is Authority, IHookManager {
     using AddressLinkedList for mapping(address => address);
@@ -46,26 +47,34 @@ abstract contract HookManager is Authority, IHookManager {
      * @param capabilityFlags Capability flags for the hook
      */
     function _installHook(address hookAddress, bytes memory initData, uint8 capabilityFlags) internal virtual {
-        try IHook(hookAddress).supportsInterface(INTERFACE_ID_HOOK) returns (bool supported) {
-            if (supported == false) {
-                revert INVALID_HOOK();
-            } else {
-                if (capabilityFlags & (PRE_IS_VALID_SIGNATURE_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
-                    revert INVALID_HOOK_TYPE();
-                }
-                if (capabilityFlags & PRE_IS_VALID_SIGNATURE_HOOK == PRE_IS_VALID_SIGNATURE_HOOK) {
-                    AccountStorage.layout().preIsValidSignatureHook.add(hookAddress);
-                }
-                if (capabilityFlags & PRE_USER_OP_VALIDATION_HOOK == PRE_USER_OP_VALIDATION_HOOK) {
-                    AccountStorage.layout().preUserOpValidationHook.add(hookAddress);
-                }
+        bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
+        bytes4 invalidHookSelector = INVALID_HOOK.selector;
+        assembly ("memory-safe") {
+            // IHook(hookAddress).supportsInterface(INTERFACE_ID_HOOK)
+            let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if iszero(result) {
+                mstore(0x00, invalidHookSelector)
+                revert(0x00, 4)
             }
-        } catch {
-            revert INVALID_HOOK();
+            // return true
+            let supported := mload(0x00)
+            if iszero(supported) {
+                mstore(0x00, invalidHookSelector)
+                revert(0x00, 4)
+            }
         }
 
-        bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
-        bytes4 invalidHookSelector = INVALID_HOOK.selector;
+        if (capabilityFlags & (PRE_IS_VALID_SIGNATURE_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
+            revert INVALID_HOOK_TYPE();
+        }
+        if (capabilityFlags & PRE_IS_VALID_SIGNATURE_HOOK == PRE_IS_VALID_SIGNATURE_HOOK) {
+            AccountStorage.layout().preIsValidSignatureHook.add(hookAddress);
+        }
+        if (capabilityFlags & PRE_USER_OP_VALIDATION_HOOK == PRE_USER_OP_VALIDATION_HOOK) {
+            AccountStorage.layout().preUserOpValidationHook.add(hookAddress);
+        }
+
+        callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
         assembly ("memory-safe") {
             let result := call(gas(), hookAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
             if iszero(result) {
@@ -165,7 +174,7 @@ abstract contract HookManager is Authority, IHookManager {
             assembly ("memory-safe") {
                 let ptr := add(hookSignatures.offset, cursor)
                 _hookAddr := shr(0x60, calldataload(ptr))
-                if eq(_hookAddr, 0) { revert(0, 0) }
+                if iszero(_hookAddr) { revert(0, 0) }
                 _cursorFrom := add(cursor, 24) //20+4
                 let guardSigLen := shr(0xE0, calldataload(add(ptr, 20)))
                 _cursorEnd := add(_cursorFrom, guardSigLen)
@@ -204,6 +213,7 @@ abstract contract HookManager is Authority, IHookManager {
             } else {
                 currentHookSignature = hookSignatures[0:0];
             }
+
             try IHook(addr).preIsValidSignatureHook(hash, currentHookSignature) {}
             catch {
                 return false;
@@ -251,10 +261,18 @@ abstract contract HookManager is Authority, IHookManager {
             } else {
                 currentHookSignature = hookSignatures[0:0];
             }
-            try IHook(addr).preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, currentHookSignature) {}
-            catch {
-                return false;
+
+            bytes memory callData = abi.encodeWithSelector(
+                IHook.preUserOpValidationHook.selector, userOp, userOpHash, missingAccountFunds, currentHookSignature
+            );
+            assembly ("memory-safe") {
+                let result := call(gas(), addr, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
+                if iszero(result) {
+                    mstore(0x00, false)
+                    return(0x00, 0x20)
+                }
             }
+
             addr = preUserOpValidationHook[addr];
         }
 

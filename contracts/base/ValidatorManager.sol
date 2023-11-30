@@ -77,7 +77,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         if (AccountStorage.layout().validators.isExist(validator) == false) {
             return bytes4(0);
         }
-        bytes memory callData = abi.encodeWithSelector(IValidator.isValidSignature.selector, hash, validatorSignature);
+        bytes memory callData = abi.encodeWithSelector(IValidator.validateSignature.selector, hash, validatorSignature);
         assembly ("memory-safe") {
             let result := staticcall(gas(), validator, add(callData, 0x20), mload(callData), 0x00, 0x20)
             if result { magicValue := mload(0x00) }

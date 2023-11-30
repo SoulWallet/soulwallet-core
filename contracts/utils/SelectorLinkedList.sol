@@ -9,12 +9,8 @@ library SelectorLinkedList {
     bytes4 internal constant SENTINEL_SELECTOR = 0x00000001;
     uint32 internal constant SENTINEL_UINT = 1;
 
-    function isSafeSelector(bytes4 selector) internal pure returns (bool) {
-        return uint32(selector) > SENTINEL_UINT;
-    }
-
     modifier onlySelector(bytes4 selector) {
-        if (!isSafeSelector(selector)) {
+        if (uint32(selector) <= SENTINEL_UINT) {
             revert INVALID_SELECTOR();
         }
         _;
