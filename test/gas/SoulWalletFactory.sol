@@ -22,8 +22,6 @@ contract SoulWalletFactory is Ownable {
     IEntryPoint public immutable entryPoint;
     string public constant VERSION = "0.0.1";
 
-    event SoulWalletCreation(address indexed proxy);
-
     /**
      * @dev Initializes the factory with the wallet implementation and entry point addresses
      * @param _walletImpl Address of the SoulWallet implementation
@@ -60,15 +58,11 @@ contract SoulWalletFactory is Ownable {
         bytes32 salt = _calcSalt(_initializer, _salt);
         assembly ("memory-safe") {
             proxy := create2(0x0, add(deploymentData, 0x20), mload(deploymentData), salt)
-        }
-        if (proxy == address(0)) {
-            revert();
-        }
-        assembly ("memory-safe") {
+            if iszero(proxy) { revert(0, 0) }
+
             let succ := call(gas(), proxy, 0, add(_initializer, 0x20), mload(_initializer), 0, 0)
-            if eq(succ, 0) { revert(0, 0) }
+            if iszero(succ) { revert(0, 0) }
         }
-        emit SoulWalletCreation(proxy);
     }
 
     /**

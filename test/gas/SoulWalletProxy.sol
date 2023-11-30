@@ -30,11 +30,11 @@ contract SoulWalletProxy {
     fallback() external payable {
         assembly {
             /* not memory-safe */
-            let _singleton := and(sload(_IMPLEMENTATION_SLOT), 0xffffffffffffffffffffffffffffffffffffffff)
             calldatacopy(0, 0, calldatasize())
+            let _singleton := and(sload(_IMPLEMENTATION_SLOT), 0xffffffffffffffffffffffffffffffffffffffff)
             let success := delegatecall(gas(), _singleton, 0, calldatasize(), 0, 0)
             returndatacopy(0, 0, returndatasize())
-            if eq(success, 0) { revert(0, returndatasize()) }
+            if iszero(success) { revert(0, returndatasize()) }
             return(0, returndatasize())
         }
     }
