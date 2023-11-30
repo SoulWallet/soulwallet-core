@@ -59,13 +59,6 @@ contract SoulWalletCore is
         returns (uint256 validationData)
     {
         _onlyEntryPoint();
-        (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
-            _decodeSignature(userOp.signature);
-
-        if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature) == false) {
-            return SIG_VALIDATION_FAILED;
-        }
-        validationData = _validateUserOp(userOp, userOpHash, validator, validatorSignature);
 
         assembly {
             if missingAccountFunds {
@@ -73,5 +66,14 @@ contract SoulWalletCore is
                 pop(call(gas(), caller(), missingAccountFunds, 0x00, 0x00, 0x00, 0x00))
             }
         }
+
+        (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
+            _decodeSignature(userOp.signature);
+
+        if (_preUserOpValidationHook(userOp, userOpHash, missingAccountFunds, hookSignature) == false) {
+            return SIG_VALIDATION_FAILED;
+        }
+
+        return _validateUserOp(userOp, userOpHash, validator, validatorSignature);
     }
 }
