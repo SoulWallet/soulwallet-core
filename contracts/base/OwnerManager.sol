@@ -74,6 +74,10 @@ abstract contract OwnerManager is IOwnerManager, Authority {
         _ownerMapping().add(newOwner);
     }
 
+    function _clearOwner() internal virtual {
+        _ownerMapping().clear();
+    }
+
     function resetOwner(bytes32 newOwner) external virtual override {
         ownerManagementAccess();
         _resetOwner(newOwner);
