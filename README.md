@@ -44,4 +44,4 @@ We welcome contributions in any form, be it feature enhancements, bug reports, o
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE)
+This project is licensed under the [GPL-3.0 License](LICENSE)
