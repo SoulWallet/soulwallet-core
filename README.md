@@ -45,3 +45,13 @@ We welcome contributions in any form, be it feature enhancements, bug reports, o
 ## License
 
 This project is licensed under the [GPL-3.0 License](LICENSE)
+
+## License Clarification
+
+This project makes use of code from the [eth-infinitism/account-abstraction](https://github.com/eth-infinitism/account-abstraction) repository, which is licensed under the GPL-3.0 license. However, all code developed for this project is based on the MIT license.
+
+### Using Our Code in Non-GPL-3.0 Projects
+
+If you intend to use our code in projects that are not licensed under GPL-3.0, you can directly copy the files that are independently licensed under MIT from our repository into your project. This approach ensures compliance with the MIT license, provided that the copied files are standalone and do not depend on any GPL-3.0 licensed code from our project.
+
+Please be aware that while you are free to use, modify, and distribute these MIT-licensed files, the GPL-3.0 licensed code from the eth-infinitism/account-abstraction repository may impose certain restrictions if used in your projects. It is important to ensure that your use of these files adheres to the respective license terms.
