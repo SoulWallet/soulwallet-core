@@ -10,8 +10,9 @@ import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
+import {HookManagerBase} from "../snippets/HookManager.sol";
 
-abstract contract HookManager is Authority, IHookManager {
+abstract contract HookManager is Authority, IHookManager, HookManagerBase {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_HOOK();
@@ -47,7 +48,11 @@ abstract contract HookManager is Authority, IHookManager {
      * @param initData The init data of the hook
      * @param capabilityFlags Capability flags for the hook
      */
-    function _installHook(address hookAddress, bytes memory initData, uint8 capabilityFlags) internal virtual {
+    function _installHook(address hookAddress, bytes memory initData, uint8 capabilityFlags)
+        internal
+        virtual
+        override
+    {
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
         bytes4 invalidHookSelector = INVALID_HOOK.selector;
         assembly ("memory-safe") {
@@ -95,7 +100,7 @@ abstract contract HookManager is Authority, IHookManager {
      *      2. call hook.deInit() with 100k gas, emit HOOK_UNINSTALL_WITHERROR if the call failed
      * @param hookAddress The address of the hook
      */
-    function _uninstallHook(address hookAddress) internal virtual {
+    function _uninstallHook(address hookAddress) internal virtual override {
         bool removed1 = AccountStorage.layout().preIsValidSignatureHook.tryRemove(hookAddress);
         bool removed2 = AccountStorage.layout().preUserOpValidationHook.tryRemove(hookAddress);
         if (removed1 == false && removed2 == false) {

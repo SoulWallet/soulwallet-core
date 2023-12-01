@@ -8,8 +8,9 @@ import {AccountStorage} from "../utils/AccountStorage.sol";
 import {Authority} from "./Authority.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SelectorLinkedList} from "../utils/SelectorLinkedList.sol";
+import {ModuleManagerBase} from "../snippets/ModuleManager.sol";
 
-abstract contract ModuleManager is IModuleManager, Authority {
+abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerBase {
     using AddressLinkedList for mapping(address => address);
     using SelectorLinkedList for mapping(bytes4 => bytes4);
 
@@ -37,7 +38,7 @@ abstract contract ModuleManager is IModuleManager, Authority {
     /**
      * @dev checks whether a address is a authorized module
      */
-    function _isInstalledModule(address module) internal view returns (bool) {
+    function _isInstalledModule(address module) internal view virtual override returns (bool) {
         return _moduleMapping().isExist(module);
     }
 
@@ -54,7 +55,11 @@ abstract contract ModuleManager is IModuleManager, Authority {
      * @param initData module init data
      * @param selectors function selectors that the module is allowed to call
      */
-    function _installModule(address moduleAddress, bytes memory initData, bytes4[] memory selectors) internal virtual {
+    function _installModule(address moduleAddress, bytes memory initData, bytes4[] memory selectors)
+        internal
+        virtual
+        override
+    {
         try IModule(moduleAddress).supportsInterface(INTERFACE_ID_MODULE) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_MODULE();
@@ -96,7 +101,7 @@ abstract contract ModuleManager is IModuleManager, Authority {
      * @dev uninstall a module
      * @param moduleAddress module address
      */
-    function _uninstallModule(address moduleAddress) internal virtual {
+    function _uninstallModule(address moduleAddress) internal virtual override {
         mapping(address => address) storage modules = _moduleMapping();
         modules.remove(moduleAddress);
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();

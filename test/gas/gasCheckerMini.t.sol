@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {MinimumModularAccount} from "../../examples/MinimumModularAccount.sol";
+import {ModularAccountWithBuildinEOAValidator} from "../../examples/ModularAccountWithBuildinEOAValidator.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
 import "@source/validators/BuildinEOAValidator.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
@@ -21,7 +21,7 @@ contract GasCheckerMiniTest is Test {
 
     IEntryPoint entryPoint;
     SoulWalletFactory walletFactory;
-    MinimumModularAccount walletImpl;
+    ModularAccountWithBuildinEOAValidator walletImpl;
 
     TokenERC20 token;
     DemoHook demoHook1;
@@ -35,7 +35,7 @@ contract GasCheckerMiniTest is Test {
 
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
-        walletImpl = new MinimumModularAccount(address(entryPoint));
+        walletImpl = new ModularAccountWithBuildinEOAValidator(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
 
         (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
@@ -110,7 +110,7 @@ contract GasCheckerMiniTest is Test {
         bytes memory initializer;
         {
             bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
-            initializer = abi.encodeWithSelector(MinimumModularAccount.initialize.selector, owner);
+            initializer = abi.encodeWithSelector(ModularAccountWithBuildinEOAValidator.initialize.selector, owner);
         }
         sender = walletFactory.getWalletAddress(initializer, salt);
         console.log("sender", sender);

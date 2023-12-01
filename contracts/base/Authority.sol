@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-abstract contract Authority {
+import {AuthorityBase} from "../snippets/Authority.sol";
+
+abstract contract Authority is AuthorityBase {
     /**
      * a custom error for caller must be self or module
      */
@@ -13,19 +15,9 @@ abstract contract Authority {
     error CALLER_MUST_BE_MODULE();
 
     /**
-     * @dev checks whether the caller is the Authority contract
-     */
-    function _isAuthorizedModule() internal view virtual returns (bool);
-
-    /**
-     * @notice Ensures the calling contract is the entrypoint
-     */
-    function _onlyEntryPoint() internal view virtual;
-
-    /**
      * @notice Ensures the calling contract is an authorized module
      */
-    function _onlyModule() internal view {
+    function _onlyModule() internal view override {
         if (!_isAuthorizedModule()) {
             revert CALLER_MUST_BE_MODULE();
         }
@@ -35,7 +27,7 @@ abstract contract Authority {
      * @notice Ensures the calling contract is either the Authority contract itself or an authorized module
      * @dev Uses the inherited `_isAuthorizedModule()` from ModuleAuth for module-based authentication
      */
-    function _onlySelfOrModule() internal view {
+    function _onlySelfOrModule() internal view override {
         if (msg.sender != address(this) && !_isAuthorizedModule()) {
             revert CALLER_MUST_BE_SELF_OR_MODULE();
         }
@@ -45,7 +37,7 @@ abstract contract Authority {
      * @dev Check if access to the following functions:
      *      1. setFallbackHandler
      */
-    function fallbackManagementAccess() internal view virtual {
+    function fallbackManagementAccess() internal view virtual override {
         _onlySelfOrModule();
     }
 
@@ -56,7 +48,7 @@ abstract contract Authority {
      *      3. installModule
      *      4. uninstallModule
      */
-    function pluginManagementAccess() internal view virtual {
+    function pluginManagementAccess() internal view virtual override {
         _onlySelfOrModule();
     }
 
@@ -66,7 +58,7 @@ abstract contract Authority {
      *      2. removeOwner
      *      3. resetOwner
      */
-    function ownerManagementAccess() internal view virtual {
+    function ownerManagementAccess() internal view virtual override {
         _onlySelfOrModule();
     }
 
@@ -75,7 +67,7 @@ abstract contract Authority {
      *      1. execute
      *      2. executeBatch
      */
-    function executorAccess() internal view virtual {
+    function executorAccess() internal view virtual override {
         _onlyEntryPoint();
     }
 
@@ -84,7 +76,7 @@ abstract contract Authority {
      *      1. installValidator
      *      2. uninstallValidator
      */
-    function validatorManagementAccess() internal view virtual {
+    function validatorManagementAccess() internal view virtual override {
         _onlySelfOrModule();
     }
 }

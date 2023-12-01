@@ -8,15 +8,26 @@ import {UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
+import {ValidatorManagerBase} from "../snippets/ValidatorManager.sol";
 
-abstract contract ValidatorManager is Authority, IValidatorManager {
+abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerBase {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_VALIDATOR();
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
 
-    function _installValidator(address validator) internal virtual {
+    /**
+     * @dev checks whether a address is a installed validator
+     */
+    function _isInstalledValidator(address validator) internal view virtual override returns (bool) {
+        return AccountStorage.layout().validators.isExist(validator);
+    }
+
+    /**
+     * @dev install a validator
+     */
+    function _installValidator(address validator) internal virtual override {
         try IValidator(validator).supportsInterface(INTERFACE_ID_VALIDATOR) returns (bool supported) {
             if (supported == false) {
                 revert INVALID_VALIDATOR();
@@ -28,11 +39,17 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         }
     }
 
-    function _uninstallValidator(address validator) internal virtual {
+    /**
+     * @dev uninstall a validator
+     */
+    function _uninstallValidator(address validator) internal virtual override {
         AccountStorage.layout().validators.remove(address(validator));
     }
 
-    function _resetValidator(address validator) internal virtual {
+    /**
+     * @dev reset validator
+     */
+    function _resetValidator(address validator) internal virtual override {
         AccountStorage.layout().validators.clear();
         _installValidator(validator);
     }
@@ -53,6 +70,9 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         _uninstallValidator(validator);
     }
 
+    /**
+     * @dev list validators
+     */
     function listValidator() external view virtual override returns (address[] memory validators) {
         mapping(address => address) storage validator = AccountStorage.layout().validators;
         validators = validator.list(AddressLinkedList.SENTINEL_ADDRESS, validator.size());
@@ -69,9 +89,10 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         internal
         view
         virtual
+        override
         returns (bytes4 magicValue)
     {
-        if (AccountStorage.layout().validators.isExist(validator) == false) {
+        if (_isInstalledValidator(validator) == false) {
             return bytes4(0);
         }
         bytes memory callData = abi.encodeWithSelector(IValidator.validateSignature.selector, hash, validatorSignature);
@@ -96,8 +117,8 @@ abstract contract ValidatorManager is Authority, IValidatorManager {
         bytes32 userOpHash,
         address validator,
         bytes calldata validatorSignature
-    ) internal virtual returns (uint256 validationData) {
-        if (AccountStorage.layout().validators.isExist(validator) == false) {
+    ) internal virtual override returns (uint256 validationData) {
+        if (_isInstalledValidator(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
         bytes memory callData =

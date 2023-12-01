@@ -4,15 +4,16 @@ pragma solidity ^0.8.20;
 import {Authority} from "./Authority.sol";
 import {IFallbackManager} from "../interface/IFallbackManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
+import {FallbackManagerBase} from "../snippets/FallbackManager.sol";
 
-abstract contract FallbackManager is IFallbackManager, Authority {
+abstract contract FallbackManager is IFallbackManager, Authority, FallbackManagerBase {
     receive() external payable virtual {}
 
     /**
      * @dev Sets the address of the fallback handler contract
      * @param fallbackContract The address of the new fallback handler contract
      */
-    function _setFallbackHandler(address fallbackContract) internal virtual {
+    function _setFallbackHandler(address fallbackContract) internal virtual override {
         AccountStorage.layout().defaultFallbackContract = fallbackContract;
     }
 

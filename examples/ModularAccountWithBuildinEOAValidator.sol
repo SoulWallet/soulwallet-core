@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {SoulWalletCore} from "../contracts/SoulWalletCore.sol";
 import {BuildinEOAValidator} from "../contracts/validators/BuildinEOAValidator.sol";
 
-contract MinimumModularAccount is SoulWalletCore, BuildinEOAValidator {
+contract ModularAccountWithBuildinEOAValidator is SoulWalletCore, BuildinEOAValidator {
     uint256 private _initialized;
 
     modifier initializer() {
@@ -17,7 +17,13 @@ contract MinimumModularAccount is SoulWalletCore, BuildinEOAValidator {
 
     function initialize(bytes32 owner) external initializer {
         _addOwner(owner);
-        _installValidator(address(this));
+    }
+
+    /**
+     * @dev checks whether a address is a installed validator
+     */
+    function _isInstalledValidator(address validator) internal view override returns (bool) {
+        return validator == address(this) || super._isInstalledValidator(validator);
     }
 
     /**

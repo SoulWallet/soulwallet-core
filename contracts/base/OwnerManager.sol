@@ -5,15 +5,16 @@ import {Authority} from "./Authority.sol";
 import {IOwnerManager} from "../interface/IOwnerManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {Bytes32LinkedList} from "../utils/Bytes32LinkedList.sol";
+import {OwnerManagerBase} from "../snippets/OwnerManager.sol";
 
-abstract contract OwnerManager is IOwnerManager, Authority {
+abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerBase {
     using Bytes32LinkedList for mapping(bytes32 => bytes32);
 
     /**
      * @notice Helper function to get the owner mapping from account storage
      * @return owners Mapping of current owners
      */
-    function _ownerMapping() private view returns (mapping(bytes32 => bytes32) storage owners) {
+    function _ownerMapping() internal view override returns (mapping(bytes32 => bytes32) storage owners) {
         owners = AccountStorage.layout().owners;
     }
 
@@ -22,7 +23,7 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @param owner Address in bytes32 format to check
      * @return true if provided owner is a current owner, false otherwise
      */
-    function _isOwner(bytes32 owner) internal view virtual returns (bool) {
+    function _isOwner(bytes32 owner) internal view virtual override returns (bool) {
         return _ownerMapping().isExist(owner);
     }
 
@@ -39,7 +40,7 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @notice Internal function to add an owner
      * @param owner Address in bytes32 format to add
      */
-    function _addOwner(bytes32 owner) internal virtual {
+    function _addOwner(bytes32 owner) internal virtual override {
         _ownerMapping().add(owner);
     }
 
@@ -56,7 +57,7 @@ abstract contract OwnerManager is IOwnerManager, Authority {
      * @notice Internal function to remove an owner
      * @param owner Address in bytes32 format to remove
      */
-    function _removeOwner(bytes32 owner) internal virtual {
+    function _removeOwner(bytes32 owner) internal virtual override {
         _ownerMapping().remove(owner);
     }
 
@@ -69,12 +70,12 @@ abstract contract OwnerManager is IOwnerManager, Authority {
         _removeOwner(owner);
     }
 
-    function _resetOwner(bytes32 newOwner) internal virtual {
+    function _resetOwner(bytes32 newOwner) internal virtual override {
         _ownerMapping().clear();
         _ownerMapping().add(newOwner);
     }
 
-    function _clearOwner() internal virtual {
+    function _clearOwner() internal virtual override {
         _ownerMapping().clear();
     }
 
