@@ -67,7 +67,7 @@ abstract contract HookManager is Authority, IHookManager {
             }
         }
 
-        if (capabilityFlags & (PRE_IS_VALID_SIGNATURE_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
+        if (capabilityFlags & (PRE_USER_OP_VALIDATION_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
             revert INVALID_HOOK_TYPE();
         }
         if (capabilityFlags & PRE_IS_VALID_SIGNATURE_HOOK == PRE_IS_VALID_SIGNATURE_HOOK) {
