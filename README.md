@@ -2,6 +2,10 @@
 
 SoulWalletCore is a flexible and reusable smart contract wallet framework compliant with the EIP-4337 standard. It aims to provide a simple, adaptable, and easily integrable foundation for various wallet functionalities and extensions.
 
+## ⚠️ Disclaimer
+
+**The SoulWalletCore has not been audited and is provided as-is. It is not recommended for use in production environments.** Users and developers should exercise caution and use at their own risk.
+
 ## Features
 
 - **EIP-4337 Compliant**: Ensures alignment with the latest developments in the Ethereum community.
