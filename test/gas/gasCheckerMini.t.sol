@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {BasicModularAccount} from "../../examples/BasicModularAccount.sol";
+import {MinimumModularAccount} from "../../examples/MinimumModularAccount.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
 import "@source/validators/BuildinEOAValidator.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
@@ -16,15 +16,12 @@ import {TokenERC20} from "../dev/TokenERC20.sol";
 import {DemoHook} from "../dev/demoHook.sol";
 import {DemoModule} from "../dev/demoModule.sol";
 
-contract GasCheckerTest is Test {
+contract GasCheckerMiniTest is Test {
     using MessageHashUtils for bytes32;
 
     IEntryPoint entryPoint;
     SoulWalletFactory walletFactory;
-    BasicModularAccount walletImpl;
-
-    BuildinEOAValidator validator;
-    ReceiverHandler _fallback;
+    MinimumModularAccount walletImpl;
 
     TokenERC20 token;
     DemoHook demoHook1;
@@ -38,10 +35,9 @@ contract GasCheckerTest is Test {
 
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
-        walletImpl = new BasicModularAccount(address(entryPoint));
+        walletImpl = new MinimumModularAccount(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
-        validator = new BuildinEOAValidator();
-        _fallback = new ReceiverHandler();
+
         (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
         (walletOwner2, walletOwner2PrivateKey) = makeAddrAndKey("owner2");
         token = new TokenERC20();
@@ -49,8 +45,28 @@ contract GasCheckerTest is Test {
         demoHook2 = new DemoHook();
         demoModule = new DemoModule();
 
-        console.log("walletImpl", address(walletImpl));
-        console.log("walletFactory", address(walletFactory));
+        console.log("walletFactory address:", address(walletFactory));
+        console.log("walletFactory bytecode begin");
+        console.logBytes(getContractCode(address(walletFactory)));
+        console.log("walletFactory bytecode end");
+
+        console.log("walletImpl address:", address(walletImpl));
+        console.log("walletImpl bytecode begin");
+        console.logBytes(getContractCode(address(walletImpl)));
+        console.log("walletImpl bytecode end");
+    }
+
+    function getContractCode(address _contract) private view returns (bytes memory) {
+        bytes memory code;
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(_contract)
+        }
+        code = new bytes(codeSize);
+        assembly {
+            extcodecopy(_contract, add(code, 0x20), 0, codeSize)
+        }
+        return code;
     }
 
     function _packHash(address account, bytes32 hash) private view returns (bytes32) {
@@ -85,7 +101,7 @@ contract GasCheckerTest is Test {
         bytes32 userOpHash = getUserOpHash(userOperation);
         bytes32 hash = _packHash(userOperation.sender, userOpHash).toEthSignedMessageHash();
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletOwner1PrivateKey, hash);
-        bytes memory _signature = _packSignature(address(validator), abi.encodePacked(r, s, v));
+        bytes memory _signature = _packSignature(address(0), abi.encodePacked(r, s, v));
         userOperation.signature = _signature;
     }
 
@@ -94,11 +110,7 @@ contract GasCheckerTest is Test {
         bytes memory initializer;
         {
             bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
-            address defaultValidator = address(validator);
-            address defaultFallback = address(_fallback);
-            initializer = abi.encodeWithSelector(
-                BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
-            );
+            initializer = abi.encodeWithSelector(MinimumModularAccount.initialize.selector, owner);
         }
         sender = walletFactory.getWalletAddress(initializer, salt);
         console.log("sender", sender);

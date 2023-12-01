@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {SoulWalletCore} from "../contracts/SoulWalletCore.sol";
 import {BuildinEOAValidator} from "../contracts/validators/BuildinEOAValidator.sol";
 
-contract MinimumAccount is SoulWalletCore, BuildinEOAValidator {
+contract MinimumModularAccount is SoulWalletCore, BuildinEOAValidator {
     uint256 private _initialized;
 
     modifier initializer() {
@@ -25,7 +25,7 @@ contract MinimumAccount is SoulWalletCore, BuildinEOAValidator {
      */
     function _decodeSignature(bytes calldata signature)
         internal
-        pure
+        view
         override
         returns (address validator, bytes calldata validatorSignature, bytes calldata hookSignature)
     {

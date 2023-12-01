@@ -54,7 +54,7 @@ contract SoulWalletCore is
      */
     function _decodeSignature(bytes calldata signature)
         internal
-        pure
+        view
         virtual
         returns (address validator, bytes calldata validatorSignature, bytes calldata hookSignature)
     {
