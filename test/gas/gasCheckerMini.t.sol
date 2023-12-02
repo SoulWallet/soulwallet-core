@@ -28,18 +28,15 @@ contract GasCheckerMiniTest is Test {
     DemoHook demoHook2;
     DemoModule demoModule;
 
-    address public walletOwner1;
-    uint256 public walletOwner1PrivateKey;
-    address public walletOwner2;
-    uint256 public walletOwner2PrivateKey;
+    address public walletOwner;
+    uint256 public walletOwnerPrivateKey;
 
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
         walletImpl = new ModularAccountWithBuildinEOAValidator(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
 
-        (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
-        (walletOwner2, walletOwner2PrivateKey) = makeAddrAndKey("owner2");
+        (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner1");
         token = new TokenERC20();
         demoHook1 = new DemoHook();
         demoHook2 = new DemoHook();
@@ -100,7 +97,7 @@ contract GasCheckerMiniTest is Test {
     function signUserOp(UserOperation memory userOperation) private view {
         bytes32 userOpHash = getUserOpHash(userOperation);
         bytes32 hash = _packHash(userOperation.sender, userOpHash).toEthSignedMessageHash();
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletOwner1PrivateKey, hash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletOwnerPrivateKey, hash);
         bytes memory _signature = _packSignature(address(0), abi.encodePacked(r, s, v));
         userOperation.signature = _signature;
     }
@@ -109,7 +106,7 @@ contract GasCheckerMiniTest is Test {
         bytes32 salt = 0;
         bytes memory initializer;
         {
-            bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
+            bytes32 owner = bytes32(uint256(uint160(walletOwner)));
             initializer = abi.encodeWithSelector(ModularAccountWithBuildinEOAValidator.initialize.selector, owner);
         }
         sender = walletFactory.getWalletAddress(initializer, salt);
