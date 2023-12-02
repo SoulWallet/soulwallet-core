@@ -204,10 +204,9 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
         (_hookAddr, _cursorFrom, _cursorEnd) = _nextHookSignature(hookSignatures, _cursorEnd);
 
         mapping(address => address) storage preIsValidSignatureHook = AccountStorage.layout().preIsValidSignatureHook;
-        address addr = preIsValidSignatureHook[AddressLinkedList.SENTINEL_ADDRESS];
-        while (uint160(addr) > AddressLinkedList.SENTINEL_UINT) {
+        address hookAddress = preIsValidSignatureHook[AddressLinkedList.SENTINEL_ADDRESS];
+        while (uint160(hookAddress) > AddressLinkedList.SENTINEL_UINT) {
             bytes calldata currentHookSignature;
-            address hookAddress = addr;
             if (hookAddress == _hookAddr) {
                 currentHookSignature = hookSignatures[_cursorFrom:_cursorEnd];
                 // next
@@ -224,7 +223,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
             assembly ("memory-safe") {
                 // memorySafe: The scratch space between memory offset 0 and 64.
 
-                let result := staticcall(gas(), addr, add(callData, 0x20), mload(callData), 0x00, 0x00)
+                let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x00)
                 if iszero(result) {
                     /*
                         Warning!!!
@@ -237,7 +236,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
                 }
             }
 
-            addr = preIsValidSignatureHook[addr];
+            hookAddress = preIsValidSignatureHook[hookAddress];
         }
 
         if (_hookAddr != address(0)) {
@@ -272,10 +271,9 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
         (_hookAddr, _cursorFrom, _cursorEnd) = _nextHookSignature(hookSignatures, _cursorEnd);
 
         mapping(address => address) storage preUserOpValidationHook = AccountStorage.layout().preUserOpValidationHook;
-        address addr = preUserOpValidationHook[AddressLinkedList.SENTINEL_ADDRESS];
-        while (uint160(addr) > AddressLinkedList.SENTINEL_UINT) {
+        address hookAddress = preUserOpValidationHook[AddressLinkedList.SENTINEL_ADDRESS];
+        while (uint160(hookAddress) > AddressLinkedList.SENTINEL_UINT) {
             bytes calldata currentHookSignature;
-            address hookAddress = addr;
             if (hookAddress == _hookAddr) {
                 currentHookSignature = hookSignatures[_cursorFrom:_cursorEnd];
                 // next
@@ -293,7 +291,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
             assembly ("memory-safe") {
                 // memorySafe: The scratch space between memory offset 0 and 64.
 
-                let result := call(gas(), addr, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
+                let result := call(gas(), hookAddress, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
                 if iszero(result) {
                     /*
                         Warning!!!
@@ -306,7 +304,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
                 }
             }
 
-            addr = preUserOpValidationHook[addr];
+            hookAddress = preUserOpValidationHook[hookAddress];
         }
 
         if (_hookAddr != address(0)) {
