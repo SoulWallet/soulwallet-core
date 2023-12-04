@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import {IOwnerManager} from "@source/interface/IOwnerManager.sol";
 import {BasicModularAccount} from "../examples/BasicModularAccount.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
-import "@source/validators/BuildinEOAValidator.sol";
+import "@source/validators/EOAValidator.sol";
 import {ReceiverHandler} from "./dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {DeployEntryPoint} from "./dev/deployEntryPoint.sol";
@@ -17,7 +17,7 @@ contract EIP1271Test is Test {
     SoulWalletFactory walletFactory;
     BasicModularAccount walletImpl;
 
-    BuildinEOAValidator validator;
+    EOAValidator validator;
     ReceiverHandler _fallback;
 
     address public walletOwner;
@@ -28,7 +28,7 @@ contract EIP1271Test is Test {
     function setUp() public {
         walletImpl = new BasicModularAccount(address(this));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(this), address(this));
-        validator = new BuildinEOAValidator();
+        validator = new EOAValidator();
         _fallback = new ReceiverHandler();
         (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner1");
 

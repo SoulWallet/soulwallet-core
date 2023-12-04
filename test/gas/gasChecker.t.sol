@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {BasicModularAccount} from "../../examples/BasicModularAccount.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
-import "@source/validators/BuildinEOAValidator.sol";
+import "@source/validators/EOAValidator.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
@@ -23,7 +23,7 @@ contract GasCheckerTest is Test {
     SoulWalletFactory walletFactory;
     BasicModularAccount walletImpl;
 
-    BuildinEOAValidator validator;
+    EOAValidator validator;
     ReceiverHandler _fallback;
 
     TokenERC20 token;
@@ -40,7 +40,7 @@ contract GasCheckerTest is Test {
         entryPoint = new DeployEntryPoint().deploy();
         walletImpl = new BasicModularAccount(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
-        validator = new BuildinEOAValidator();
+        validator = new EOAValidator();
         _fallback = new ReceiverHandler();
         (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
         (walletOwner2, walletOwner2PrivateKey) = makeAddrAndKey("owner2");

@@ -8,7 +8,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {IOwnable} from "../interface/IOwnable.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../utils/Constants.sol";
 
-contract BuildinEOAValidator is IValidator {
+contract EOAValidator is IValidator {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 

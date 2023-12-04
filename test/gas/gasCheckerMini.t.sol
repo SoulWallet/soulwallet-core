@@ -4,10 +4,8 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {ModularAccountWithBuildinEOAValidator} from "../../examples/ModularAccountWithBuildinEOAValidator.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
-import "@source/validators/BuildinEOAValidator.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
 import {SoulWalletFactory} from "../dev/SoulWalletFactory.sol";
@@ -37,6 +35,7 @@ contract GasCheckerMiniTest is Test {
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
 
         (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner1");
+        console.log("walletOwner address:", address(walletOwner));
         token = new TokenERC20();
         demoHook1 = new DemoHook();
         demoHook2 = new DemoHook();
@@ -97,6 +96,7 @@ contract GasCheckerMiniTest is Test {
     function signUserOp(UserOperation memory userOperation) private view {
         bytes32 userOpHash = getUserOpHash(userOperation);
         bytes32 hash = _packHash(userOperation.sender, userOpHash).toEthSignedMessageHash();
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletOwnerPrivateKey, hash);
         bytes memory _signature = _packSignature(address(0), abi.encodePacked(r, s, v));
         userOperation.signature = _signature;

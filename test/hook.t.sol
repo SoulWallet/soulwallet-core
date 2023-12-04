@@ -7,7 +7,7 @@ import {IModuleManager} from "@source/interface/IModuleManager.sol";
 import {IOwnerManager} from "@source/interface/IOwnerManager.sol";
 import {BasicModularAccount} from "../examples/BasicModularAccount.sol";
 import {Execution} from "@source/interface/IStandardExecutor.sol";
-import "@source/validators/BuildinEOAValidator.sol";
+import "@source/validators/EOAValidator.sol";
 import {ReceiverHandler} from "./dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {DeployEntryPoint} from "./dev/deployEntryPoint.sol";
@@ -25,7 +25,7 @@ contract HookTest is Test {
     SoulWalletFactory walletFactory;
     BasicModularAccount walletImpl;
 
-    BuildinEOAValidator validator;
+    EOAValidator validator;
     ReceiverHandler _fallback;
 
     TokenERC20 token;
@@ -40,7 +40,7 @@ contract HookTest is Test {
         entryPoint = new DeployEntryPoint().deploy();
         walletImpl = new BasicModularAccount(address(entryPoint));
         walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
-        validator = new BuildinEOAValidator();
+        validator = new EOAValidator();
         _fallback = new ReceiverHandler();
         (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner1");
         token = new TokenERC20();
