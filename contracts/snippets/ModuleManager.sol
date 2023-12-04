@@ -8,6 +8,13 @@ abstract contract ModuleManagerBase {
     function _isInstalledModule(address module) internal view virtual returns (bool);
 
     /**
+     * @dev checks whether a address is a module
+     * note: If you need to extend the interface, override this function
+     * @param moduleAddress module address
+     */
+    function _isSupportsModuleInterface(address moduleAddress) internal view virtual returns (bool);
+
+    /**
      * @dev install a module
      * @param moduleAddress module address
      * @param initData module init data

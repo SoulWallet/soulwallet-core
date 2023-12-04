@@ -9,6 +9,7 @@ import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 import {ValidatorManagerBase} from "../snippets/ValidatorManager.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerBase {
     using AddressLinkedList for mapping(address => address);
@@ -25,18 +26,28 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
     }
 
     /**
+     * @dev checks whether a address is a valid validator
+     * note: If you need to extend the interface, override this function
+     * @param validator validator address
+     */
+    function _isSupportsValidatorInterface(address validator) internal view virtual override returns (bool supported) {
+        bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_VALIDATOR);
+        assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
+            let result := staticcall(gas(), validator, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if gt(result, 0) { supported := mload(0x00) }
+        }
+    }
+
+    /**
      * @dev install a validator
      */
     function _installValidator(address validator) internal virtual override {
-        try IValidator(validator).supportsInterface(INTERFACE_ID_VALIDATOR) returns (bool supported) {
-            if (supported == false) {
-                revert INVALID_VALIDATOR();
-            } else {
-                AccountStorage.layout().validators.add(address(validator));
-            }
-        } catch {
+        if (_isSupportsValidatorInterface(validator) == false) {
             revert INVALID_VALIDATOR();
         }
+        AccountStorage.layout().validators.add(address(validator));
     }
 
     /**

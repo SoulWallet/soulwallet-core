@@ -9,6 +9,7 @@ import {Authority} from "./Authority.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SelectorLinkedList} from "../utils/SelectorLinkedList.sol";
 import {ModuleManagerBase} from "../snippets/ModuleManager.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerBase {
     using AddressLinkedList for mapping(address => address);
@@ -50,6 +51,27 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerBase 
     }
 
     /**
+     * @dev checks whether a address is a module
+     * note: If you need to extend the interface, override this function
+     * @param moduleAddress module address
+     */
+    function _isSupportsModuleInterface(address moduleAddress)
+        internal
+        view
+        virtual
+        override
+        returns (bool supported)
+    {
+        bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_MODULE);
+        assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
+            let result := staticcall(gas(), moduleAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if gt(result, 0) { supported := mload(0x00) }
+        }
+    }
+
+    /**
      * @dev install a module
      * @param moduleAddress module address
      * @param initData module init data
@@ -60,11 +82,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerBase 
         virtual
         override
     {
-        try IModule(moduleAddress).supportsInterface(INTERFACE_ID_MODULE) returns (bool supported) {
-            if (supported == false) {
-                revert INVALID_MODULE();
-            }
-        } catch {
+        if (_isSupportsModuleInterface(moduleAddress) == false) {
             revert INVALID_MODULE();
         }
 

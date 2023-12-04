@@ -3,6 +3,13 @@ pragma solidity ^0.8.20;
 
 abstract contract HookManagerBase {
     /**
+     * @dev checks whether a address is a valid hook
+     * note: If you need to extend the interface, override this function
+     * @param hookAddress hook address
+     */
+    function _isSupportsHookInterface(address hookAddress) internal view virtual returns (bool);
+
+    /**
      * @dev Install a hook
      * @param hookAddress The address of the hook
      * @param initData The init data of the hook

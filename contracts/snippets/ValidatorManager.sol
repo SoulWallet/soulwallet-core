@@ -10,6 +10,13 @@ abstract contract ValidatorManagerBase {
     function _isInstalledValidator(address validator) internal view virtual returns (bool);
 
     /**
+     * @dev checks whether a address is a valid validator
+     * note: If you need to extend the interface, override this function
+     * @param validator validator address
+     */
+    function _isSupportsValidatorInterface(address validator) internal view virtual returns (bool);
+
+    /**
      * @dev install a validator
      */
     function _installValidator(address validator) internal virtual;

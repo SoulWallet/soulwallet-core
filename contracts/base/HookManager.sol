@@ -43,6 +43,21 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
     }
 
     /**
+     * @dev checks whether a address is a valid hook
+     * note: If you need to extend the interface, override this function
+     * @param hookAddress hook address
+     */
+    function _isSupportsHookInterface(address hookAddress) internal view virtual override returns (bool supported) {
+        bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
+        assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
+            let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if gt(result, 0) { supported := mload(0x00) }
+        }
+    }
+
+    /**
      * @dev Install a hook
      * @param hookAddress The address of the hook
      * @param initData The init data of the hook
@@ -53,23 +68,8 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
         virtual
         override
     {
-        bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
-        bytes4 invalidHookSelector = INVALID_HOOK.selector;
-        assembly ("memory-safe") {
-            // memorySafe: The scratch space between memory offset 0 and 64.
-
-            // IHook(hookAddress).supportsInterface(INTERFACE_ID_HOOK)
-            let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if iszero(result) {
-                mstore(0x00, invalidHookSelector)
-                revert(0x00, 4)
-            }
-            // return true
-            let supported := mload(0x00)
-            if iszero(supported) {
-                mstore(0x00, invalidHookSelector)
-                revert(0x00, 4)
-            }
+        if (_isSupportsHookInterface(hookAddress) == false) {
+            revert INVALID_HOOK();
         }
 
         if (capabilityFlags & (PRE_USER_OP_VALIDATION_HOOK | PRE_IS_VALID_SIGNATURE_HOOK) == 0) {
@@ -82,7 +82,8 @@ abstract contract HookManager is Authority, IHookManager, HookManagerBase {
             AccountStorage.layout().preUserOpValidationHook.add(hookAddress);
         }
 
-        callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
+        bytes4 invalidHookSelector = INVALID_HOOK.selector;
+        bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
 
