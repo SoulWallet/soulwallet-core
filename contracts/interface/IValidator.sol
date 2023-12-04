@@ -16,7 +16,8 @@ interface IValidator is IERC165 {
         returns (bytes4 magicValue);
 
     /**
-     * @dev EIP-4337
+     * @dev EIP-4337 validate userOperation
+     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation, see: contract/utils/CalldataPack.sol
      * @param userOp the operation that is about to be executed.
      * @param userOpHash hash of the user's request data. can be used as the basis for signature.
      * @param validatorSignature Signature

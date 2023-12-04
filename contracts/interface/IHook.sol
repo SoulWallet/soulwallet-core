@@ -14,6 +14,7 @@ interface IHook is IPluggable {
 
     /**
      * @dev Hook that is called before any userOp is executed.
+     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation. see: contract/utils/CalldataPack.sol
      * must revert if the userOp is invalid.
      */
     function preUserOpValidationHook(
