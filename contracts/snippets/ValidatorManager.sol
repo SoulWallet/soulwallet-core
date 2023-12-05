@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {UserOperation} from "../interface/IAccount.sol";
 
-abstract contract ValidatorManagerBase {
+abstract contract ValidatorManagerSnippet {
     /**
      * @dev checks whether a address is a installed validator
      */

@@ -8,10 +8,10 @@ import {UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
-import {ValidatorManagerBase} from "../snippets/ValidatorManager.sol";
+import {ValidatorManagerSnippet} from "../snippets/ValidatorManager.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerBase {
+abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerSnippet {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_VALIDATOR();

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {AuthorityBase} from "../snippets/Authority.sol";
+import {AuthoritySnippet} from "../snippets/Authority.sol";
 
-abstract contract Authority is AuthorityBase {
+abstract contract Authority is AuthoritySnippet {
     /**
      * a custom error for caller must be self or module
      */

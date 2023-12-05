@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-abstract contract ModuleManagerBase {
+abstract contract ModuleManagerSnippet {
     /**
      * @dev checks whether a address is a authorized module
      */

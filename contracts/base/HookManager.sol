@@ -10,9 +10,9 @@ import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
-import {HookManagerBase} from "../snippets/HookManager.sol";
+import {HookManagerSnippet} from "../snippets/HookManager.sol";
 
-abstract contract HookManager is Authority, IHookManager, HookManagerBase {
+abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_HOOK();

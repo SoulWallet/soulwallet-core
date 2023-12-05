@@ -8,10 +8,10 @@ import {AccountStorage} from "../utils/AccountStorage.sol";
 import {Authority} from "./Authority.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SelectorLinkedList} from "../utils/SelectorLinkedList.sol";
-import {ModuleManagerBase} from "../snippets/ModuleManager.sol";
+import {ModuleManagerSnippet} from "../snippets/ModuleManager.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerBase {
+abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnippet {
     using AddressLinkedList for mapping(address => address);
     using SelectorLinkedList for mapping(bytes4 => bytes4);
 

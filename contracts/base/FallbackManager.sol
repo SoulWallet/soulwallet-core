@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import {Authority} from "./Authority.sol";
 import {IFallbackManager} from "../interface/IFallbackManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
-import {FallbackManagerBase} from "../snippets/FallbackManager.sol";
+import {FallbackManagerSnippet} from "../snippets/FallbackManager.sol";
 
-abstract contract FallbackManager is IFallbackManager, Authority, FallbackManagerBase {
+abstract contract FallbackManager is IFallbackManager, Authority, FallbackManagerSnippet {
     receive() external payable virtual {}
 
     /**

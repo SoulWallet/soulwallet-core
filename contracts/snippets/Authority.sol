@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-abstract contract AuthorityBase {
+abstract contract AuthoritySnippet {
     /**
      * @dev checks whether the caller is a authorized module
      *  caller: msg.sender

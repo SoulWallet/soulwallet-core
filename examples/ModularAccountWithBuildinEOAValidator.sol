@@ -6,10 +6,10 @@ import {SoulWalletCore} from "../contracts/SoulWalletCore.sol";
 import {UserOperation} from "../contracts/interface/IAccount.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {OwnerManagerBase} from "../contracts/snippets/OwnerManager.sol";
+import {OwnerManagerSnippet} from "../contracts/snippets/OwnerManager.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../contracts/utils/Constants.sol";
 
-abstract contract BuildinEOAValidator is OwnerManagerBase {
+abstract contract BuildinEOAValidator is OwnerManagerSnippet {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 

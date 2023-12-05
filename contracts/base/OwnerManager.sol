@@ -5,9 +5,9 @@ import {Authority} from "./Authority.sol";
 import {IOwnerManager} from "../interface/IOwnerManager.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {Bytes32LinkedList} from "../utils/Bytes32LinkedList.sol";
-import {OwnerManagerBase} from "../snippets/OwnerManager.sol";
+import {OwnerManagerSnippet} from "../snippets/OwnerManager.sol";
 
-abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerBase {
+abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerSnippet {
     using Bytes32LinkedList for mapping(bytes32 => bytes32);
 
     /**
