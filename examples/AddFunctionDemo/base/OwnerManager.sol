@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {IOwnerManager} from "../interface/IOwnerManager.sol";
-import {AuthorityBase} from "../../../contracts/snippets/Authority.sol";
-import {OwnerManagerBase} from "../../../contracts/snippets/OwnerManager.sol";
+import {AuthoritySnippet} from "../../../contracts/snippets/Authority.sol";
+import {OwnerManagerSnippet} from "../../../contracts/snippets/OwnerManager.sol";
 
-abstract contract OwnerManager is IOwnerManager, AuthorityBase, OwnerManagerBase {
+abstract contract OwnerManager is IOwnerManager, AuthoritySnippet, OwnerManagerSnippet {
     function addOwners(bytes32[] calldata owner) external override {
         ownerManagementAccess();
 
