@@ -38,6 +38,13 @@ Next, choose or modify the contract examples as per your requirements.
 
 Refer to the examples in the `examples/` directory to understand how to build custom wallets based on SoulWalletCore.
 
+- [BasicModularAccount](examples/BasicModularAccount.sol): A basic example of a modular account.
+- [CustomAccessModularAccount](examples/CustomAccessModularAccount.sol): An example with custom permission.
+- [AddFunctionDemo](examples/AddFunctionDemo/): An implementation example with a custom function added.
+- [ModularAccountWithBuildinEOAValidator](examples/ModularAccountWithBuildinEOAValidator.sol): An example of a modular account with built-in EOA signature validation.
+- [UpgradableModularAccount](examples/UpgradableModularAccount.sol): An example of an upgradable modular account.
+  - Note: Due to the flexibility in implementing upgradable contracts, it is not implemented in SoulWalletCore. However, you can refer to this example.
+
 ## Contributions
 
 We welcome contributions in any form, be it feature enhancements, bug reports, or documentation updates. Please submit pull requests or issues through GitHub.
