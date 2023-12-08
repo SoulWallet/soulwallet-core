@@ -5,6 +5,14 @@ import {UserOperation} from "../interface/IAccount.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface IValidator is IERC165 {
+    /*
+        NOTE: Any implementation must ensure that the `validatorSignature` exactly matches your expectations, 
+              otherwise, you will face security risks.
+              For example: 
+                if you do not require any `validatorSignature`, make sure your implementation included the following code:
+                `require(validatorSignature.length == 0)`
+     */
+
     /**
      * @dev EIP-1271 Should return whether the signature provided is valid for the provided data
      * @param hash      Hash of the data to be signed
