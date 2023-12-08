@@ -5,6 +5,14 @@ import {UserOperation} from "../interface/IAccount.sol";
 import {IPluggable} from "./IPluggable.sol";
 
 interface IHook is IPluggable {
+    /*
+        NOTE: Any implementation must ensure that the `hookSignature` exactly matches your expectations, 
+              otherwise, you will face security risks.
+              For example: 
+                if you do not require any `hookSignature`, make sure your implementation included the following code:
+                `require(hookSignature.length == 0)`
+     */
+
     /**
      * @dev Should return whether the signature provided is valid for the provided data
      * @param hash      Hash of the data to be signed
