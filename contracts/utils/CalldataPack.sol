@@ -6,7 +6,7 @@ import {IValidator} from "../interface/IValidator.sol";
 
 library CallDataPack {
     /**
-     * @dev Executing abi.encodeWithSelector with a custom function can save at least 1323 gas (when the signature length is 89), and the savings are even greater in cases where userOp contains a longer signature or hookData.
+     * @dev Executing abi.encodeWithSelector with a custom function can save at least 1322 gas (when the signature length is 89), and the savings are even greater in cases where userOp contains a longer signature or hookData.
      *
      * Benchmark: `forge test -vv --match-contract "CalldataPackTest" | grep 'gasDiff'`
      * Result:
