@@ -11,6 +11,7 @@ import {ValidatorManager} from "./base/ValidatorManager.sol";
 import {HookManager} from "./base/HookManager.sol";
 import {SignatureDecoder} from "./utils/SignatureDecoder.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import {UserOperationLib} from "./utils/UserOperationLib.sol";
 
 contract SoulWalletCore is
     IAccount,
@@ -77,7 +78,7 @@ contract SoulWalletCore is
             }
         }
         (address validator, bytes calldata validatorSignature, bytes calldata hookSignature) =
-            _decodeSignature(userOp.signature);
+            _decodeSignature(UserOperationLib.getSignature(userOp));
 
         /*
             Warning!!!
