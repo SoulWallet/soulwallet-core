@@ -8,7 +8,7 @@ import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
-import {SoulWalletFactory} from "../dev/SoulWalletFactory.sol";
+import {EffiProxyFactory} from "../dev/EffiProxyFactory.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
 import {TokenERC20} from "../dev/TokenERC20.sol";
 import {DemoHook} from "../dev/demoHook.sol";
@@ -18,7 +18,7 @@ contract GasCheckerMiniTest is Test {
     using MessageHashUtils for bytes32;
 
     IEntryPoint entryPoint;
-    SoulWalletFactory walletFactory;
+    EffiProxyFactory walletFactory;
     ModularAccountWithBuildinEOAValidator walletImpl;
 
     TokenERC20 token;
@@ -32,7 +32,7 @@ contract GasCheckerMiniTest is Test {
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
         walletImpl = new ModularAccountWithBuildinEOAValidator(address(entryPoint));
-        walletFactory = new SoulWalletFactory(address(walletImpl), address(entryPoint), address(this));
+        walletFactory = new EffiProxyFactory(address(walletImpl), address(entryPoint), address(this));
 
         (walletOwner, walletOwnerPrivateKey) = makeAddrAndKey("owner1");
         console.log("walletOwner address:", address(walletOwner));
@@ -129,7 +129,7 @@ contract GasCheckerMiniTest is Test {
             maxPriorityFeePerGas = 100 gwei;
             // function createWallet(bytes memory _initializer, bytes32 _salt)
             initCode = abi.encodePacked(
-                walletFactory, abi.encodeWithSelector(SoulWalletFactory.createWallet.selector, initializer, salt)
+                walletFactory, abi.encodeWithSelector(EffiProxyFactory.createWallet.selector, initializer, salt)
             );
         }
         UserOperation memory userOperation = UserOperation(
