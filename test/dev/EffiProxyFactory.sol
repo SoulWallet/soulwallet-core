@@ -50,9 +50,9 @@ contract EffiProxyFactory is Ownable {
         // refer: https://github.com/jayden-sudo/EffiProxy
 
         return abi.encodePacked(
-            hex"73",
+            hex"60518060225f395f73",
             _WALLETIMPL,
-            hex"7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc55604280380380825f395ff37f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5473ffffffffffffffffffffffffffffffffffffffff16365f5f375f5f365f845af43d5f5f3e58600801573d5ffd5b3d5ff3"
+            hex"60165155f373ffffffffffffffffffffffffffffffffffffffff7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5416365f5f375f5f365f845af43d5f5f3e604d573d5ffd5b3d5ff3"
         );
     }
 
