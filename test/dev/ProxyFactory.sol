@@ -11,12 +11,12 @@ import "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title EffiProxyFactory
+ * @title ProxyFactory
  * @author soulwallet team
  * @notice A factory contract to create soul wallets
  * @dev This contract is called by the entrypoint which uses the "initCode" to create and return the sender's wallet address
  */
-contract EffiProxyFactory is Ownable {
+contract ProxyFactory is Ownable {
     address private immutable _WALLETIMPL;
     IEntryPoint public immutable entryPoint;
     string public constant VERSION = "0.0.1";
@@ -47,12 +47,11 @@ contract EffiProxyFactory is Ownable {
     }
 
     function getDeploymentData() private view returns (bytes memory) {
-        // refer: https://github.com/jayden-sudo/EffiProxy
-
+        // refer: https://github.com/Vectorized/solady/blob/main/src/utils/LibClone.sol#L609-L669
         return abi.encodePacked(
-            hex"60518060225f395f73",
+            hex"603d3d8160223d3973",
             _WALLETIMPL,
-            hex"60165155f373ffffffffffffffffffffffffffffffffffffffff7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc5416365f5f375f5f365f845af43d5f5f3e604d573d5ffd5b3d5ff3"
+            hex"60095155f3363d3d373d3d363d7f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc545af43d6000803e6038573d6000fd5b3d6000f3"
         );
     }
 
