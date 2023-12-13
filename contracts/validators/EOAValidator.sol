@@ -22,6 +22,9 @@ contract EOAValidator is IValidator {
     }
 
     function _packHash(bytes32 hash) internal view returns (bytes32) {
+        /*
+            must pack the hash with the chainId and the address of the wallet contract to prevent replay attacks
+         */
         return keccak256(abi.encode(hash, msg.sender, block.chainid));
     }
 

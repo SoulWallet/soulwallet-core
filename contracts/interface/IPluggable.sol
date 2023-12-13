@@ -14,6 +14,10 @@ interface IPluggable is IERC165 {
      */
     function Init(bytes calldata data) external;
 
+    /*
+        NOTE: All implemention must ensure that the DeInit() function can be covered by 100,000 gas in all scenarios.
+     */
+
     /**
      * @notice Deinitializes a specific module or plugin from the wallet
      */
