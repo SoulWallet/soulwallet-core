@@ -82,10 +82,13 @@ library AddressLinkedList {
      */
 
     function clear(mapping(address => address) storage self) internal {
-        for (address addr = self[SENTINEL_ADDRESS]; uint160(addr) > SENTINEL_UINT; addr = self[addr]) {
-            self[addr] = address(0);
-        }
+        address addr = self[SENTINEL_ADDRESS];
         self[SENTINEL_ADDRESS] = address(0);
+        while (uint160(addr) > SENTINEL_UINT) {
+            address _addr = self[addr];
+            self[addr] = address(0);
+            addr = _addr;
+        }
     }
     /**
      * @notice Checks if an address exists in the linked list.

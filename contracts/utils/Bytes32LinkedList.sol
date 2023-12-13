@@ -53,10 +53,13 @@ library Bytes32LinkedList {
     }
 
     function clear(mapping(bytes32 => bytes32) storage self) internal {
-        for (bytes32 data = self[SENTINEL_BYTES32]; data > SENTINEL_BYTES32; data = self[data]) {
-            self[data] = bytes32(0);
-        }
+        bytes32 data = self[SENTINEL_BYTES32];
         self[SENTINEL_BYTES32] = bytes32(0);
+        while (data > SENTINEL_BYTES32) {
+            bytes32 _data = self[data];
+            self[data] = bytes32(0);
+            data = _data;
+        }
     }
 
     function isExist(mapping(bytes32 => bytes32) storage self, bytes32 data)

@@ -17,6 +17,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
     error INVALID_MODULE();
+    error CALLER_MUST_BE_AUTHORIZED_MODULE();
 
     bytes4 private constant INTERFACE_ID_MODULE = type(IModule).interfaceId;
 
@@ -87,6 +88,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         mapping(address => address) storage modules = _moduleMapping();
         modules.add(moduleAddress);
         mapping(bytes4 => bytes4) storage moduleSelectors = AccountStorage.layout().moduleSelectors[moduleAddress];
+
         for (uint256 i = 0; i < selectors.length; i++) {
             moduleSelectors.add(selectors[i]);
         }
@@ -123,7 +125,6 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         mapping(address => address) storage modules = _moduleMapping();
         modules.remove(moduleAddress);
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();
-
         (bool success,) =
             moduleAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
         if (success) {
@@ -200,7 +201,9 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
      * @param func The function data to be executed
      */
     function executeFromModule(address dest, uint256 value, bytes memory func) external virtual override {
-        require(_isAuthorizedModule());
+        if (_isAuthorizedModule() == false) {
+            revert CALLER_MUST_BE_AUTHORIZED_MODULE();
+        }
 
         if (dest == address(this)) revert MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
         assembly ("memory-safe") {

@@ -96,10 +96,12 @@ contract HookTest is Test {
         bytes memory hookAndData = abi.encodePacked(address(demoHook), hookData);
 
         vm.startPrank(address(wallet));
+
         vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
         emit InitCalled(hookData);
         wallet.installHook(hookAndData, 3);
         assertTrue(wallet.isInstalledHook(address(demoHook)));
+
         vm.stopPrank();
 
         (address[] memory preIsValidSignatureHooks, address[] memory preUserOpValidationHooks) = wallet.listHook();

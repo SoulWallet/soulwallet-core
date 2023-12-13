@@ -62,10 +62,13 @@ library SelectorLinkedList {
     }
 
     function clear(mapping(bytes4 => bytes4) storage self) internal {
-        for (bytes4 selector = self[SENTINEL_SELECTOR]; uint32(selector) > SENTINEL_UINT; selector = self[selector]) {
-            self[selector] = 0;
-        }
+        bytes4 selector = self[SENTINEL_SELECTOR];
         self[SENTINEL_SELECTOR] = 0;
+        while (uint32(selector) > SENTINEL_UINT) {
+            bytes4 _selector = self[selector];
+            self[selector] = 0;
+            selector = _selector;
+        }
     }
 
     function isExist(mapping(bytes4 => bytes4) storage self, bytes4 selector)
