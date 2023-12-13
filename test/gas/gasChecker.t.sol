@@ -10,7 +10,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
-import {EffiProxyFactory} from "../dev/EffiProxyFactory.sol";
+import {ProxyFactory} from "../dev/ProxyFactory.sol";
 import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
 import {TokenERC20} from "../dev/TokenERC20.sol";
 import {DemoHook} from "../dev/demoHook.sol";
@@ -20,7 +20,7 @@ contract GasCheckerTest is Test {
     using MessageHashUtils for bytes32;
 
     IEntryPoint entryPoint;
-    EffiProxyFactory walletFactory;
+    ProxyFactory walletFactory;
     BasicModularAccount walletImpl;
 
     EOAValidator validator;
@@ -39,7 +39,7 @@ contract GasCheckerTest is Test {
     function setUp() public {
         entryPoint = new DeployEntryPoint().deploy();
         walletImpl = new BasicModularAccount(address(entryPoint));
-        walletFactory = new EffiProxyFactory(address(walletImpl), address(entryPoint), address(this));
+        walletFactory = new ProxyFactory(address(walletImpl), address(entryPoint), address(this));
         validator = new EOAValidator();
         _fallback = new ReceiverHandler();
         (walletOwner1, walletOwner1PrivateKey) = makeAddrAndKey("owner1");
@@ -120,7 +120,7 @@ contract GasCheckerTest is Test {
             maxPriorityFeePerGas = 100 gwei;
             // function createWallet(bytes memory _initializer, bytes32 _salt)
             initCode = abi.encodePacked(
-                walletFactory, abi.encodeWithSelector(EffiProxyFactory.createWallet.selector, initializer, salt)
+                walletFactory, abi.encodeWithSelector(ProxyFactory.createWallet.selector, initializer, salt)
             );
         }
         UserOperation memory userOperation = UserOperation(
