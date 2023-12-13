@@ -11,6 +11,8 @@ interface IHook is IPluggable {
               For example: 
                 if you do not require any `hookSignature`, make sure your implementation included the following code:
                 `require(hookSignature.length == 0)`
+        
+        NOTE: All implemention must ensure that the DeInit() function can be covered by 100,000 gas in all scenarios.
      */
 
     /**
