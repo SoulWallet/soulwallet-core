@@ -5,6 +5,23 @@ import {IOwnable} from "./IOwnable.sol";
 
 interface IOwnerManager is IOwnable {
     /**
+     * @notice Emitted when an owner is added
+     * @param owner owner
+     */
+    event OwnerAdded(bytes32 indexed owner);
+
+    /**
+     * @notice Emitted when an owner is removed
+     * @param owner owner
+     */
+    event OwnerRemoved(bytes32 indexed owner);
+
+    /**
+     * @notice Emitted when all owners are removed
+     */
+    event OwnerCleared();
+
+    /**
      * @notice Adds a new owner to the system
      * @param owner The bytes32 ID of the owner to be added
      */

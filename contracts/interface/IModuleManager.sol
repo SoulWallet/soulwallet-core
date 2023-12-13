@@ -2,6 +2,24 @@
 pragma solidity ^0.8.20;
 
 interface IModuleManager {
+    /**
+     * @notice Emitted when a module is installed
+     * @param module module
+     */
+    event ModuleInstalled(address module);
+
+    /**
+     * @notice Emitted when a module is uninstalled
+     * @param module module
+     */
+    event ModuleUninstalled(address module);
+
+    /**
+     * @notice Emitted when a module is uninstalled with error
+     * @param module module
+     */
+    event ModuleUninstalledwithError(address module);
+
     function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external;
     function uninstallModule(address moduleAddress) external;
 

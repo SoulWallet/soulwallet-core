@@ -20,8 +20,6 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
     error HOOK_NOT_EXISTS();
     error INVALID_HOOK_SIGNATURE();
 
-    event HOOK_UNINSTALL_WITHERROR(address indexed hookAddress);
-
     bytes4 private constant INTERFACE_ID_HOOK = type(IHook).interfaceId;
 
     /*
@@ -93,6 +91,8 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
                 revert(0x00, 4)
             }
         }
+
+        emit HookInstalled(hookAddress);
     }
 
     /**
@@ -110,8 +110,11 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
 
         (bool success,) =
             hookAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
-        if (!success) {
-            emit HOOK_UNINSTALL_WITHERROR(hookAddress);
+
+        if (success) {
+            emit HookUninstalled(hookAddress);
+        } else {
+            emit HookUninstalledwithError(hookAddress);
         }
     }
 

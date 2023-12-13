@@ -42,6 +42,7 @@ abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerSnippet 
      */
     function _addOwner(bytes32 owner) internal virtual override {
         _ownerMapping().add(owner);
+        emit OwnerAdded(owner);
     }
 
     /**
@@ -59,6 +60,7 @@ abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerSnippet 
      */
     function _removeOwner(bytes32 owner) internal virtual override {
         _ownerMapping().remove(owner);
+        emit OwnerRemoved(owner);
     }
 
     /**
@@ -71,12 +73,13 @@ abstract contract OwnerManager is IOwnerManager, Authority, OwnerManagerSnippet 
     }
 
     function _resetOwner(bytes32 newOwner) internal virtual override {
-        _ownerMapping().clear();
+        _clearOwner();
         _ownerMapping().add(newOwner);
     }
 
     function _clearOwner() internal virtual override {
         _ownerMapping().clear();
+        emit OwnerCleared();
     }
 
     function resetOwner(bytes32 newOwner) external virtual override {

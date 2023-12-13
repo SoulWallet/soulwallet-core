@@ -18,8 +18,6 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
     error INVALID_MODULE();
 
-    event MODULE_UNINSTALL_WITHERROR(address indexed moduleAddress);
-
     bytes4 private constant INTERFACE_ID_MODULE = type(IModule).interfaceId;
 
     function _moduleMapping() internal view returns (mapping(address => address) storage modules) {
@@ -103,6 +101,8 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
                 revert(0x00, 4)
             }
         }
+
+        emit ModuleInstalled(moduleAddress);
     }
 
     /**
@@ -126,8 +126,10 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
         (bool success,) =
             moduleAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
-        if (!success) {
-            emit MODULE_UNINSTALL_WITHERROR(moduleAddress);
+        if (success) {
+            emit ModuleUninstalled(moduleAddress);
+        } else {
+            emit ModuleUninstalledwithError(moduleAddress);
         }
     }
 
