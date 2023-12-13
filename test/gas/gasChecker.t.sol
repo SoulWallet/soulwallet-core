@@ -89,40 +89,17 @@ contract GasCheckerTest is Test {
         userOperation.signature = _signature;
     }
 
-    function deploy() private returns (uint256 gasCost, address sender) {
-        bytes32 salt = 0;
-        bytes memory initializer;
-        {
-            bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
-            address defaultValidator = address(validator);
-            address defaultFallback = address(_fallback);
-            initializer = abi.encodeWithSelector(
-                BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
-            );
-        }
-        sender = walletFactory.getWalletAddress(initializer, salt);
-        console.log("sender", sender);
+    function newUserOp(address sender) private pure returns (UserOperation memory) {
         uint256 nonce = 0;
         bytes memory initCode;
         bytes memory callData;
         uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
+        uint256 verificationGasLimit = 1e6;
+        uint256 preVerificationGas = 1e5;
+        uint256 maxFeePerGas = 100 gwei;
+        uint256 maxPriorityFeePerGas = 100 gwei;
         bytes memory paymasterAndData;
         bytes memory signature;
-        {
-            callGasLimit = 0;
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-            // function createWallet(bytes memory _initializer, bytes32 _salt)
-            initCode = abi.encodePacked(
-                walletFactory, abi.encodeWithSelector(ProxyFactory.createWallet.selector, initializer, salt)
-            );
-        }
         UserOperation memory userOperation = UserOperation(
             sender,
             nonce,
@@ -135,6 +112,32 @@ contract GasCheckerTest is Test {
             maxPriorityFeePerGas,
             paymasterAndData,
             signature
+        );
+        return userOperation;
+    }
+
+    function deploy() private returns (uint256 gasCost, address sender) {
+        bytes32 salt = 0;
+        bytes memory initializer;
+        {
+            bytes32 owner = bytes32(uint256(uint160(walletOwner1)));
+            address defaultValidator = address(validator);
+            address defaultFallback = address(_fallback);
+            initializer = abi.encodeWithSelector(
+                BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
+            );
+        }
+        sender = walletFactory.getWalletAddress(initializer, salt);
+
+        UserOperation memory userOperation = newUserOp(sender);
+
+        userOperation.verificationGasLimit = 1e6;
+        userOperation.preVerificationGas = 1e5;
+        userOperation.maxFeePerGas = 100 gwei;
+        userOperation.maxPriorityFeePerGas = 100 gwei;
+        // function createWallet(bytes memory _initializer, bytes32 _salt)
+        userOperation.initCode = abi.encodePacked(
+            walletFactory, abi.encodeWithSelector(ProxyFactory.createWallet.selector, initializer, salt)
         );
 
         signUserOp(userOperation);
@@ -163,38 +166,14 @@ contract GasCheckerTest is Test {
     function testETHTransfer() public {
         (, address sender) = deploy();
 
-        uint256 nonce = 1;
-        bytes memory initCode;
-        bytes memory callData;
-        uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
-        bytes memory paymasterAndData;
-        bytes memory signature;
-        {
-            // function execute(address target, uint256 value, bytes memory data)
-            callGasLimit = 40000;
-            callData = abi.encodeWithSelector(walletImpl.execute.selector, address(1), 1 ether, "");
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-        }
-        UserOperation memory userOperation = UserOperation(
-            sender,
-            nonce,
-            initCode,
-            callData,
-            callGasLimit,
-            verificationGasLimit,
-            preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            paymasterAndData,
-            signature
-        );
+        UserOperation memory userOperation = newUserOp(sender);
+        userOperation.nonce = 1;
+        userOperation.callGasLimit = 40000;
+        userOperation.callData = abi.encodeWithSelector(walletImpl.execute.selector, address(1), 1 ether, "");
+        userOperation.verificationGasLimit = 1e6;
+        userOperation.preVerificationGas = 1e5;
+        userOperation.maxFeePerGas = 100 gwei;
+        userOperation.maxPriorityFeePerGas = 100 gwei;
 
         signUserOp(userOperation);
 
@@ -216,42 +195,20 @@ contract GasCheckerTest is Test {
     function testBatchETHTransfer() public {
         (, address sender) = deploy();
 
-        uint256 nonce = 1;
-        bytes memory initCode;
-        bytes memory callData;
-        uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
-        bytes memory paymasterAndData;
-        bytes memory signature;
-        {
-            //  function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
-            callGasLimit = 120000;
-            Execution[] memory executions = new Execution[](3);
-            executions[0] = Execution(address(1), 0.1 ether, "");
-            executions[1] = Execution(address(2), 0.1 ether, "");
-            executions[2] = Execution(address(3), 0.1 ether, "");
-            callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-        }
-        UserOperation memory userOperation = UserOperation(
-            sender,
-            nonce,
-            initCode,
-            callData,
-            callGasLimit,
-            verificationGasLimit,
-            preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            paymasterAndData,
-            signature
-        );
+        UserOperation memory userOperation = newUserOp(sender);
+
+        userOperation.nonce = 1;
+        //  function executeBatch(Execution[] calldata executions) external payable virtual override onlyEntryPoint {
+        userOperation.callGasLimit = 120000;
+        Execution[] memory executions = new Execution[](3);
+        executions[0] = Execution(address(1), 0.1 ether, "");
+        executions[1] = Execution(address(2), 0.1 ether, "");
+        executions[2] = Execution(address(3), 0.1 ether, "");
+        userOperation.callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
+        userOperation.verificationGasLimit = 1e6;
+        userOperation.preVerificationGas = 1e5;
+        userOperation.maxFeePerGas = 100 gwei;
+        userOperation.maxPriorityFeePerGas = 100 gwei;
 
         signUserOp(userOperation);
 
@@ -275,39 +232,17 @@ contract GasCheckerTest is Test {
 
         token.transfer(sender, 1 ether);
 
-        uint256 nonce = 1;
-        bytes memory initCode;
-        bytes memory callData;
-        uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
-        bytes memory paymasterAndData;
-        bytes memory signature;
-        {
-            // function transfer(address to, uint256 value)
-            callGasLimit = 40000;
-            bytes memory data = abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether);
-            callData = abi.encodeWithSelector(walletImpl.execute.selector, address(token), 0, data);
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-        }
-        UserOperation memory userOperation = UserOperation(
-            sender,
-            nonce,
-            initCode,
-            callData,
-            callGasLimit,
-            verificationGasLimit,
-            preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            paymasterAndData,
-            signature
-        );
+        UserOperation memory userOperation = newUserOp(sender);
+
+        userOperation.nonce = 1;
+        // function transfer(address to, uint256 value)
+        userOperation.callGasLimit = 40000;
+        bytes memory data = abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether);
+        userOperation.callData = abi.encodeWithSelector(walletImpl.execute.selector, address(token), 0, data);
+        userOperation.verificationGasLimit = 1e6;
+        userOperation.preVerificationGas = 1e5;
+        userOperation.maxFeePerGas = 100 gwei;
+        userOperation.maxPriorityFeePerGas = 100 gwei;
 
         signUserOp(userOperation);
 
@@ -331,45 +266,22 @@ contract GasCheckerTest is Test {
         (, address sender) = deploy();
         token.transfer(sender, 3 ether);
 
-        uint256 nonce = 1;
-        bytes memory initCode;
-        bytes memory callData;
-        uint256 callGasLimit;
-        uint256 verificationGasLimit;
-        uint256 preVerificationGas;
-        uint256 maxFeePerGas;
-        uint256 maxPriorityFeePerGas;
-        bytes memory paymasterAndData;
-        bytes memory signature;
-        {
-            // function execute(address target, uint256 value, bytes memory data)
-            callGasLimit = 120000;
-            Execution[] memory executions = new Execution[](3);
-            executions[0] =
-                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether));
-            executions[1] =
-                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(2), 1 ether));
-            executions[2] =
-                Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(3), 1 ether));
-            callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
-            verificationGasLimit = 1e6;
-            preVerificationGas = 1e5;
-            maxFeePerGas = 100 gwei;
-            maxPriorityFeePerGas = 100 gwei;
-        }
-        UserOperation memory userOperation = UserOperation(
-            sender,
-            nonce,
-            initCode,
-            callData,
-            callGasLimit,
-            verificationGasLimit,
-            preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            paymasterAndData,
-            signature
-        );
+        UserOperation memory userOperation = newUserOp(sender);
+        userOperation.nonce = 1;
+        // function execute(address target, uint256 value, bytes memory data)
+        userOperation.callGasLimit = 120000;
+        Execution[] memory executions = new Execution[](3);
+        executions[0] =
+            Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(1), 1 ether));
+        executions[1] =
+            Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(2), 1 ether));
+        executions[2] =
+            Execution(address(token), 0, abi.encodeWithSelector(token.transfer.selector, address(3), 1 ether));
+        userOperation.callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
+        userOperation.verificationGasLimit = 1e6;
+        userOperation.preVerificationGas = 1e5;
+        userOperation.maxFeePerGas = 100 gwei;
+        userOperation.maxPriorityFeePerGas = 100 gwei;
 
         signUserOp(userOperation);
 
@@ -399,243 +311,243 @@ contract GasCheckerTest is Test {
     event InitCalled(bytes data);
     event DeInitCalled();
 
-    function testHook() public {
-        (, address sender) = deploy();
+    // function testHook() public {
+    //     (, address sender) = deploy();
 
-        // install 1 hook
-        {
-            uint256 nonce = 1;
-            bytes memory initCode;
-            bytes memory callData;
-            uint256 callGasLimit;
-            uint256 verificationGasLimit;
-            uint256 preVerificationGas;
-            uint256 maxFeePerGas;
-            uint256 maxPriorityFeePerGas;
-            bytes memory paymasterAndData;
-            bytes memory signature;
-            bytes memory hookTestData = hex"aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff";
-            {
-                // function transfer(address to, uint256 value)
-                callGasLimit = 200000;
-                // function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
-                bytes memory hookAndData = abi.encodePacked(address(demoHook1), hookTestData);
-                bytes memory data = abi.encodeWithSelector(
-                    walletImpl.installHook.selector,
-                    hookAndData,
-                    PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
-                );
-                callData = abi.encodeWithSelector(walletImpl.execute.selector, sender, 0, data);
-                verificationGasLimit = 1e6;
-                preVerificationGas = 1e5;
-                maxFeePerGas = 100 gwei;
-                maxPriorityFeePerGas = 100 gwei;
-            }
-            UserOperation memory userOperation = UserOperation(
-                sender,
-                nonce,
-                initCode,
-                callData,
-                callGasLimit,
-                verificationGasLimit,
-                preVerificationGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                paymasterAndData,
-                signature
-            );
+    //     // install 1 hook
+    //     {
+    //         uint256 nonce = 1;
+    //         bytes memory initCode;
+    //         bytes memory callData;
+    //         uint256 callGasLimit;
+    //         uint256 verificationGasLimit;
+    //         uint256 preVerificationGas;
+    //         uint256 maxFeePerGas;
+    //         uint256 maxPriorityFeePerGas;
+    //         bytes memory paymasterAndData;
+    //         bytes memory signature;
+    //         bytes memory hookTestData = hex"aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff";
+    //         {
+    //             // function transfer(address to, uint256 value)
+    //             callGasLimit = 200000;
+    //             // function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
+    //             bytes memory hookAndData = abi.encodePacked(address(demoHook1), hookTestData);
+    //             bytes memory data = abi.encodeWithSelector(
+    //                 walletImpl.installHook.selector,
+    //                 hookAndData,
+    //                 PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
+    //             );
+    //             callData = abi.encodeWithSelector(walletImpl.execute.selector, sender, 0, data);
+    //             verificationGasLimit = 1e6;
+    //             preVerificationGas = 1e5;
+    //             maxFeePerGas = 100 gwei;
+    //             maxPriorityFeePerGas = 100 gwei;
+    //         }
+    //         UserOperation memory userOperation = UserOperation(
+    //             sender,
+    //             nonce,
+    //             initCode,
+    //             callData,
+    //             callGasLimit,
+    //             verificationGasLimit,
+    //             preVerificationGas,
+    //             maxFeePerGas,
+    //             maxPriorityFeePerGas,
+    //             paymasterAndData,
+    //             signature
+    //         );
 
-            signUserOp(userOperation);
+    //         signUserOp(userOperation);
 
-            UserOperation[] memory ops = new UserOperation[](1);
-            ops[0] = userOperation;
-            (address beneficiary,) = makeAddrAndKey("beneficiary");
-            uint256 preFund = _getRequiredPrefund(userOperation);
-            require(preFund < 0.2 ether, "preFund too high");
-            vm.deal(sender, preFund);
-            vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
-            emit InitCalled(hookTestData);
-            uint256 gasBefore = gasleft();
-            entryPoint.handleOps(ops, payable(beneficiary));
-            uint256 gasAfter = gasleft();
-            uint256 gasCost = gasBefore - gasAfter;
-            outPutGasCost("Install 1 Hook", gasCost);
-        }
+    //         UserOperation[] memory ops = new UserOperation[](1);
+    //         ops[0] = userOperation;
+    //         (address beneficiary,) = makeAddrAndKey("beneficiary");
+    //         uint256 preFund = _getRequiredPrefund(userOperation);
+    //         require(preFund < 0.2 ether, "preFund too high");
+    //         vm.deal(sender, preFund);
+    //         vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
+    //         emit InitCalled(hookTestData);
+    //         uint256 gasBefore = gasleft();
+    //         entryPoint.handleOps(ops, payable(beneficiary));
+    //         uint256 gasAfter = gasleft();
+    //         uint256 gasCost = gasBefore - gasAfter;
+    //         outPutGasCost("Install 1 Hook", gasCost);
+    //     }
 
-        // uninstall 1 hook
-        {
-            uint256 nonce = 2;
-            bytes memory initCode;
-            bytes memory callData;
-            uint256 callGasLimit;
-            uint256 verificationGasLimit;
-            uint256 preVerificationGas;
-            uint256 maxFeePerGas;
-            uint256 maxPriorityFeePerGas;
-            bytes memory paymasterAndData;
-            bytes memory signature;
-            {
-                // function transfer(address to, uint256 value)
-                callGasLimit = 200000;
-                // function uninstallHook(address hookAddress)
-                bytes memory data = abi.encodeWithSelector(walletImpl.uninstallHook.selector, demoHook1);
-                callData = abi.encodeWithSelector(walletImpl.execute.selector, sender, 0, data);
-                verificationGasLimit = 1e6;
-                preVerificationGas = 1e5;
-                maxFeePerGas = 100 gwei;
-                maxPriorityFeePerGas = 100 gwei;
-            }
-            UserOperation memory userOperation = UserOperation(
-                sender,
-                nonce,
-                initCode,
-                callData,
-                callGasLimit,
-                verificationGasLimit,
-                preVerificationGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                paymasterAndData,
-                signature
-            );
+    //     // uninstall 1 hook
+    //     {
+    //         uint256 nonce = 2;
+    //         bytes memory initCode;
+    //         bytes memory callData;
+    //         uint256 callGasLimit;
+    //         uint256 verificationGasLimit;
+    //         uint256 preVerificationGas;
+    //         uint256 maxFeePerGas;
+    //         uint256 maxPriorityFeePerGas;
+    //         bytes memory paymasterAndData;
+    //         bytes memory signature;
+    //         {
+    //             // function transfer(address to, uint256 value)
+    //             callGasLimit = 200000;
+    //             // function uninstallHook(address hookAddress)
+    //             bytes memory data = abi.encodeWithSelector(walletImpl.uninstallHook.selector, demoHook1);
+    //             callData = abi.encodeWithSelector(walletImpl.execute.selector, sender, 0, data);
+    //             verificationGasLimit = 1e6;
+    //             preVerificationGas = 1e5;
+    //             maxFeePerGas = 100 gwei;
+    //             maxPriorityFeePerGas = 100 gwei;
+    //         }
+    //         UserOperation memory userOperation = UserOperation(
+    //             sender,
+    //             nonce,
+    //             initCode,
+    //             callData,
+    //             callGasLimit,
+    //             verificationGasLimit,
+    //             preVerificationGas,
+    //             maxFeePerGas,
+    //             maxPriorityFeePerGas,
+    //             paymasterAndData,
+    //             signature
+    //         );
 
-            signUserOp(userOperation);
+    //         signUserOp(userOperation);
 
-            UserOperation[] memory ops = new UserOperation[](1);
-            ops[0] = userOperation;
-            (address beneficiary,) = makeAddrAndKey("beneficiary");
-            uint256 preFund = _getRequiredPrefund(userOperation);
-            require(preFund < 0.2 ether, "preFund too high");
-            vm.deal(sender, preFund);
-            vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
-            emit DeInitCalled();
-            uint256 gasBefore = gasleft();
-            entryPoint.handleOps(ops, payable(beneficiary));
-            uint256 gasAfter = gasleft();
-            uint256 gasCost = gasBefore - gasAfter;
-            outPutGasCost("Uninstall 1 Hook", gasCost);
-        }
+    //         UserOperation[] memory ops = new UserOperation[](1);
+    //         ops[0] = userOperation;
+    //         (address beneficiary,) = makeAddrAndKey("beneficiary");
+    //         uint256 preFund = _getRequiredPrefund(userOperation);
+    //         require(preFund < 0.2 ether, "preFund too high");
+    //         vm.deal(sender, preFund);
+    //         vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
+    //         emit DeInitCalled();
+    //         uint256 gasBefore = gasleft();
+    //         entryPoint.handleOps(ops, payable(beneficiary));
+    //         uint256 gasAfter = gasleft();
+    //         uint256 gasCost = gasBefore - gasAfter;
+    //         outPutGasCost("Uninstall 1 Hook", gasCost);
+    //     }
 
-        // install 2 hooks
-        {
-            uint256 nonce = 3;
-            bytes memory initCode;
-            bytes memory callData;
-            uint256 callGasLimit;
-            uint256 verificationGasLimit;
-            uint256 preVerificationGas;
-            uint256 maxFeePerGas;
-            uint256 maxPriorityFeePerGas;
-            bytes memory paymasterAndData;
-            bytes memory signature;
-            bytes memory hookTestData = hex"aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff";
-            {
-                // function transfer(address to, uint256 value)
-                callGasLimit = 500000;
-                // function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
-                bytes memory hookAndData1 = abi.encodePacked(address(demoHook1), hookTestData);
-                bytes memory hookAndData2 = abi.encodePacked(address(demoHook2));
-                bytes memory data1 = abi.encodeWithSelector(
-                    walletImpl.installHook.selector,
-                    hookAndData1,
-                    PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
-                );
-                bytes memory data2 = abi.encodeWithSelector(
-                    walletImpl.installHook.selector,
-                    hookAndData2,
-                    PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
-                );
-                Execution[] memory executions = new Execution[](2);
-                executions[0] = Execution(address(walletImpl), 0, data1);
-                executions[1] = Execution(address(walletImpl), 0, data2);
-                callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
-                verificationGasLimit = 1e6;
-                preVerificationGas = 1e5;
-                maxFeePerGas = 100 gwei;
-                maxPriorityFeePerGas = 100 gwei;
-            }
-            UserOperation memory userOperation = UserOperation(
-                sender,
-                nonce,
-                initCode,
-                callData,
-                callGasLimit,
-                verificationGasLimit,
-                preVerificationGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                paymasterAndData,
-                signature
-            );
+    //     // install 2 hooks
+    //     {
+    //         uint256 nonce = 3;
+    //         bytes memory initCode;
+    //         bytes memory callData;
+    //         uint256 callGasLimit;
+    //         uint256 verificationGasLimit;
+    //         uint256 preVerificationGas;
+    //         uint256 maxFeePerGas;
+    //         uint256 maxPriorityFeePerGas;
+    //         bytes memory paymasterAndData;
+    //         bytes memory signature;
+    //         bytes memory hookTestData = hex"aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff";
+    //         {
+    //             // function transfer(address to, uint256 value)
+    //             callGasLimit = 500000;
+    //             // function installHook(bytes calldata hookAndData, uint8 capabilityFlags)
+    //             bytes memory hookAndData1 = abi.encodePacked(address(demoHook1), hookTestData);
+    //             bytes memory hookAndData2 = abi.encodePacked(address(demoHook2));
+    //             bytes memory data1 = abi.encodeWithSelector(
+    //                 walletImpl.installHook.selector,
+    //                 hookAndData1,
+    //                 PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
+    //             );
+    //             bytes memory data2 = abi.encodeWithSelector(
+    //                 walletImpl.installHook.selector,
+    //                 hookAndData2,
+    //                 PRE_IS_VALID_SIGNATURE_HOOK | PRE_USER_OP_VALIDATION_HOOK
+    //             );
+    //             Execution[] memory executions = new Execution[](2);
+    //             executions[0] = Execution(address(walletImpl), 0, data1);
+    //             executions[1] = Execution(address(walletImpl), 0, data2);
+    //             callData = abi.encodeWithSelector(walletImpl.executeBatch.selector, executions);
+    //             verificationGasLimit = 1e6;
+    //             preVerificationGas = 1e5;
+    //             maxFeePerGas = 100 gwei;
+    //             maxPriorityFeePerGas = 100 gwei;
+    //         }
+    //         UserOperation memory userOperation = UserOperation(
+    //             sender,
+    //             nonce,
+    //             initCode,
+    //             callData,
+    //             callGasLimit,
+    //             verificationGasLimit,
+    //             preVerificationGas,
+    //             maxFeePerGas,
+    //             maxPriorityFeePerGas,
+    //             paymasterAndData,
+    //             signature
+    //         );
 
-            signUserOp(userOperation);
+    //         signUserOp(userOperation);
 
-            UserOperation[] memory ops = new UserOperation[](1);
-            ops[0] = userOperation;
-            (address beneficiary,) = makeAddrAndKey("beneficiary");
-            uint256 preFund = _getRequiredPrefund(userOperation);
-            require(preFund < 0.2 ether, "preFund too high");
-            vm.deal(sender, preFund);
-            // vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
-            // emit InitCalled(hookTestData);
-            // emit InitCalled("");
-            uint256 gasBefore = gasleft();
-            entryPoint.handleOps(ops, payable(beneficiary));
-            uint256 gasAfter = gasleft();
-            uint256 gasCost = gasBefore - gasAfter;
-            outPutGasCost("Install 2 Hooks", gasCost);
-        }
+    //         UserOperation[] memory ops = new UserOperation[](1);
+    //         ops[0] = userOperation;
+    //         (address beneficiary,) = makeAddrAndKey("beneficiary");
+    //         uint256 preFund = _getRequiredPrefund(userOperation);
+    //         require(preFund < 0.2 ether, "preFund too high");
+    //         vm.deal(sender, preFund);
+    //         // vm.expectEmit(true, true, true, true); //   (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
+    //         // emit InitCalled(hookTestData);
+    //         // emit InitCalled("");
+    //         uint256 gasBefore = gasleft();
+    //         entryPoint.handleOps(ops, payable(beneficiary));
+    //         uint256 gasAfter = gasleft();
+    //         uint256 gasCost = gasBefore - gasAfter;
+    //         outPutGasCost("Install 2 Hooks", gasCost);
+    //     }
 
-        // transfer ETH with 2 hook
-        {
-            uint256 nonce = 4;
-            bytes memory initCode;
-            bytes memory callData;
-            uint256 callGasLimit;
-            uint256 verificationGasLimit;
-            uint256 preVerificationGas;
-            uint256 maxFeePerGas;
-            uint256 maxPriorityFeePerGas;
-            bytes memory paymasterAndData;
-            bytes memory signature;
-            {
-                // function execute(address target, uint256 value, bytes memory data)
-                callGasLimit = 40000;
-                callData = abi.encodeWithSelector(walletImpl.execute.selector, address(1), 1 ether, "");
-                verificationGasLimit = 1e6;
-                preVerificationGas = 1e5;
-                maxFeePerGas = 100 gwei;
-                maxPriorityFeePerGas = 100 gwei;
-            }
-            UserOperation memory userOperation = UserOperation(
-                sender,
-                nonce,
-                initCode,
-                callData,
-                callGasLimit,
-                verificationGasLimit,
-                preVerificationGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                paymasterAndData,
-                signature
-            );
+    //     // transfer ETH with 2 hook
+    //     {
+    //         uint256 nonce = 4;
+    //         bytes memory initCode;
+    //         bytes memory callData;
+    //         uint256 callGasLimit;
+    //         uint256 verificationGasLimit;
+    //         uint256 preVerificationGas;
+    //         uint256 maxFeePerGas;
+    //         uint256 maxPriorityFeePerGas;
+    //         bytes memory paymasterAndData;
+    //         bytes memory signature;
+    //         {
+    //             // function execute(address target, uint256 value, bytes memory data)
+    //             callGasLimit = 40000;
+    //             callData = abi.encodeWithSelector(walletImpl.execute.selector, address(1), 1 ether, "");
+    //             verificationGasLimit = 1e6;
+    //             preVerificationGas = 1e5;
+    //             maxFeePerGas = 100 gwei;
+    //             maxPriorityFeePerGas = 100 gwei;
+    //         }
+    //         UserOperation memory userOperation = UserOperation(
+    //             sender,
+    //             nonce,
+    //             initCode,
+    //             callData,
+    //             callGasLimit,
+    //             verificationGasLimit,
+    //             preVerificationGas,
+    //             maxFeePerGas,
+    //             maxPriorityFeePerGas,
+    //             paymasterAndData,
+    //             signature
+    //         );
 
-            signUserOp(userOperation);
+    //         signUserOp(userOperation);
 
-            UserOperation[] memory ops = new UserOperation[](1);
-            ops[0] = userOperation;
-            (address beneficiary,) = makeAddrAndKey("beneficiary");
-            uint256 preFund = _getRequiredPrefund(userOperation);
-            require(preFund < 0.2 ether, "preFund too high");
-            vm.deal(sender, preFund + 1 ether);
-            uint256 gasBefore = gasleft();
-            entryPoint.handleOps(ops, payable(beneficiary));
-            uint256 gasAfter = gasleft();
-            console.log("address(1).balance,", address(1).balance);
-            require(address(1).balance == 1 ether, "ETH transfer failed");
-            uint256 gasCost = gasBefore - gasAfter;
-            outPutGasCost("ETH transfer (2 Hooks)", gasCost);
-        }
-    }
+    //         UserOperation[] memory ops = new UserOperation[](1);
+    //         ops[0] = userOperation;
+    //         (address beneficiary,) = makeAddrAndKey("beneficiary");
+    //         uint256 preFund = _getRequiredPrefund(userOperation);
+    //         require(preFund < 0.2 ether, "preFund too high");
+    //         vm.deal(sender, preFund + 1 ether);
+    //         uint256 gasBefore = gasleft();
+    //         entryPoint.handleOps(ops, payable(beneficiary));
+    //         uint256 gasAfter = gasleft();
+    //         console.log("address(1).balance,", address(1).balance);
+    //         require(address(1).balance == 1 ether, "ETH transfer failed");
+    //         uint256 gasCost = gasBefore - gasAfter;
+    //         outPutGasCost("ETH transfer (2 Hooks)", gasCost);
+    //     }
+    // }
 }

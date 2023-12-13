@@ -16,6 +16,10 @@ import {TokenERC20} from "./dev/TokenERC20.sol";
 import {DemoHook} from "./dev/demoHook.sol";
 import {DemoModule} from "./dev/demoModule.sol";
 
+interface _IModuleManager {
+    function executeFromModule(address dest, uint256 value, bytes memory func) external returns (bytes memory);
+}
+
 contract ModuleTest is Test {
     using MessageHashUtils for bytes32;
 
@@ -63,6 +67,13 @@ contract ModuleTest is Test {
 
     error CALLER_MUST_BE_SELF_OR_MODULE();
 
+    error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
+    error CALLER_MUST_BE_AUTHORIZED_MODULE();
+
+    function returndatademo() external pure returns (bytes memory) {
+        return hex"1234";
+    }
+
     function test_Module() public {
         bytes4[] memory _selectors = new bytes4[](2);
         _selectors[0] = IOwnerManager.addOwner.selector;
@@ -108,5 +119,40 @@ contract ModuleTest is Test {
         wallet.uninstallModule(address(demoModule));
         assertFalse(wallet.isInstalledModule(address(demoModule)));
         vm.stopPrank();
+
+        {
+            bytes4[] memory _selectors2 = new bytes4[](1);
+            _selectors2[0] = IOwnerManager.addOwner.selector;
+            vm.prank(address(wallet));
+            wallet.installModule(moduleAndData, _selectors2);
+
+            assertTrue(wallet.isInstalledModule(address(demoModule)));
+
+            vm.startPrank(address(demoModule));
+            // function executeFromModule(address dest, uint256 value, bytes memory func) external
+            vm.expectRevert(CALLER_MUST_BE_AUTHORIZED_MODULE.selector);
+            wallet.executeFromModule(address(wallet), 0, "");
+            vm.stopPrank();
+            vm.prank(address(wallet));
+            wallet.uninstallModule(address(demoModule));
+        }
+        {
+            vm.prank(address(wallet));
+            wallet.installModule(moduleAndData, _selectors);
+
+            assertTrue(wallet.isInstalledModule(address(demoModule)));
+
+            vm.startPrank(address(demoModule));
+            // function executeFromModule(address dest, uint256 value, bytes memory func) external
+            vm.expectRevert(MODULE_EXECUTE_FROM_MODULE_RECURSIVE.selector);
+            wallet.executeFromModule(address(wallet), 0, "");
+
+            bytes memory func = abi.encodeWithSelector(this.returndatademo.selector);
+            bytes memory returndata = _IModuleManager(address(wallet)).executeFromModule(address(this), 0, func);
+
+            assertEq(returndata, hex"1234");
+
+            vm.stopPrank();
+        }
     }
 }
