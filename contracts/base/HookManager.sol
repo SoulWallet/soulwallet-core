@@ -191,6 +191,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
                 if iszero(_hookAddr) { revert(0, 0) }
                 _cursorFrom := add(cursor, 24) //20+4
                 let guardSigLen := shr(0xe0, calldataload(add(ptr, 20)))
+                if iszero(guardSigLen) { revert(0, 0) }
                 _cursorEnd := add(_cursorFrom, guardSigLen)
             }
         }
@@ -310,7 +311,6 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
 
             hookAddress = preUserOpValidationHook[hookAddress];
         }
-
         if (_hookAddr != address(0)) {
             revert INVALID_HOOK_SIGNATURE();
         }

@@ -59,8 +59,8 @@ library SignatureDecoder {
             }
             {
                 // hookSignature
-                hookSignature.offset := add(24, validatorSignature.length)
-                hookSignature.length := sub(self.length, hookSignature.offset)
+                hookSignature.offset := add(validatorSignature.offset, validatorSignature.length)
+                hookSignature.length := sub(sub(self.length, validatorSignature.length), 24)
             }
         }
     }

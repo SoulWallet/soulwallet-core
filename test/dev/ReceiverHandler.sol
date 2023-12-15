@@ -40,4 +40,7 @@ contract ReceiverHandler is IERC721Receiver, IERC1155Receiver {
         return interfaceId == _INTERFACE_ID_ERC721_RECEIVER || interfaceId == _INTERFACE_ID_ERC1155_RECEIVER
             || interfaceId == _INTERFACE_ID_ERC165;
     }
+
+    receive() external payable {}
+    fallback() external payable {}
 }

@@ -4,6 +4,7 @@
     "scripts": {
         "build": "forge build --sizes",
         "test": "forge test -vvv --no-match-contract GasCheckerMiniTest",
+        "coverage": "script -q /dev/null forge coverage | grep -v 'contracts/utils/' | grep -v 'test/dev/' | grep -v 'examples/' ",
         "gasCheck": "node test/gas/gasChecker.js",
         "gasUpdate": "node test/gas/gasChecker.js --update"
     },
