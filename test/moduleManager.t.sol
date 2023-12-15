@@ -20,7 +20,7 @@ interface _IModuleManager {
     function executeFromModule(address dest, uint256 value, bytes memory func) external returns (bytes memory);
 }
 
-contract ModuleTest is Test {
+contract ModuleManagerTest is Test {
     using MessageHashUtils for bytes32;
 
     SoulWalletFactory walletFactory;

@@ -10,6 +10,7 @@ import {ReceiverHandler} from "./dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {DeployEntryPoint} from "./dev/deployEntryPoint.sol";
 import {SoulWalletFactory} from "./dev/SoulWalletFactory.sol";
+import {DemoHook} from "./dev/demoHook.sol";
 
 contract EIP1271Test is Test {
     using MessageHashUtils for bytes32;
@@ -24,6 +25,7 @@ contract EIP1271Test is Test {
     uint256 public walletOwnerPrivateKey;
 
     BasicModularAccount wallet;
+    DemoHook demoHook;
 
     function setUp() public {
         walletImpl = new BasicModularAccount(address(this));
@@ -44,6 +46,8 @@ contract EIP1271Test is Test {
         }
 
         wallet = BasicModularAccount(payable(walletFactory.createWallet(initializer, salt)));
+
+        demoHook = new DemoHook();
     }
 
     event InitCalled(bytes data);
@@ -81,5 +85,30 @@ contract EIP1271Test is Test {
         assertEq(wallet.isValidSignature(hash1, signature1), MAGICVALUE);
         assertEq(wallet.isValidSignature(hash2, signature2), MAGICVALUE);
         assertEq(wallet.isValidSignature(hash1, signature2), bytes4(0));
+    }
+
+    function test_EIP1271WithHook() public {
+        bytes memory hookData = hex"aabbcc";
+        bytes memory hookAndData = abi.encodePacked(address(demoHook), hookData);
+
+        vm.startPrank(address(wallet));
+        wallet.installHook(hookAndData, 3);
+
+        vm.stopPrank();
+
+        bytes32 hash1 = keccak256("test1");
+        bytes32 hash2 = keccak256("test2");
+        bytes memory signature1 = signMsg(address(wallet), hash1);
+        bytes memory signature2 = signMsg(address(wallet), hash2);
+
+        assertEq(wallet.isValidSignature(hash1, signature1), MAGICVALUE);
+        assertEq(wallet.isValidSignature(hash2, signature2), MAGICVALUE);
+        assertEq(wallet.isValidSignature(hash1, signature2), bytes4(0));
+
+        bytes memory hookData2 = hex"bbccdd";
+        bytes4 hookDataLength = bytes4(uint32(uint256(hookData2.length)));
+        bytes memory hookSignature = abi.encodePacked(address(demoHook), hookDataLength, hookData2);
+        bytes memory signature3 = abi.encodePacked(signature1, hookSignature);
+        assertEq(wallet.isValidSignature(hash1, signature3), bytes4(0));
     }
 }
