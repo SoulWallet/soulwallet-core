@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {IEntryPoint} from "../contracts/interface/account-abstraction-v0.6.0/IEntryPoint.sol";
+import {IEntryPoint} from "../lib/account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IModuleManager} from "../contracts/interface/IModuleManager.sol";
 import {IOwnerManager} from "../contracts/interface/IOwnerManager.sol";
 import {BasicModularAccount} from "../examples/BasicModularAccount.sol";
@@ -12,7 +12,7 @@ import {ReceiverHandler} from "./dev/ReceiverHandler.sol";
 import {MessageHashUtils} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {DeployEntryPoint} from "./dev/deployEntryPoint.sol";
 import {SoulWalletFactory} from "./dev/SoulWalletFactory.sol";
-import {UserOperation} from "../contracts/interface/account-abstraction-v0.6.0/UserOperation.sol";
+import {UserOperation} from "../lib/account-abstraction/contracts/interfaces/UserOperation.sol";
 import {TokenERC20} from "./dev/TokenERC20.sol";
 import {DemoHook} from "./dev/demoHook.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../contracts/utils/Constants.sol";
