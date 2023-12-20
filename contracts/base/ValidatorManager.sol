@@ -106,7 +106,8 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
         if (_isInstalledValidator(validator) == false) {
             return bytes4(0);
         }
-        bytes memory callData = abi.encodeWithSelector(IValidator.validateSignature.selector, hash, validatorSignature);
+        bytes memory callData =
+            abi.encodeWithSelector(IValidator.validateSignature.selector, msg.sender, hash, validatorSignature);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
 

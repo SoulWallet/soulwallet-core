@@ -39,12 +39,13 @@ contract EOAValidator is IValidator {
         }
     }
 
-    function validateSignature(bytes32 hash, bytes calldata validatorSignature)
+    function validateSignature(address sender, bytes32 hash, bytes calldata validatorSignature)
         external
         view
         override
         returns (bytes4 magicValue)
     {
+        (sender);
         if (validatorSignature.length != 65) {
             return bytes4(0);
         }
