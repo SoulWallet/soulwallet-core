@@ -6,12 +6,12 @@ import {BasicModularAccount} from "../../examples/BasicModularAccount.sol";
 import {Execution} from "../../contracts/interface/IStandardExecutor.sol";
 import {EOAValidator} from "../../contracts/validators/EOAValidator.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
-import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-import {IEntryPoint} from "../../lib/account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
 import {ProxyFactory} from "../dev/ProxyFactory.sol";
-import {UserOperation} from "../../lib/account-abstraction/contracts/interfaces/UserOperation.sol";
+import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
 import {TokenERC20} from "../dev/TokenERC20.sol";
 import {DemoHook} from "../dev/demoHook.sol";
 import {DemoModule} from "../dev/demoModule.sol";

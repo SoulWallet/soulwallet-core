@@ -4,6 +4,8 @@
     "editor.formatOnSave": true,
     "solidity.formatter": "forge",
     "solidity.remappings": [
+        "@account-abstraction/=lib/account-abstraction/",
+        "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
     ]
 }
   
