@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IHook} from "@source/interface/IHook.sol";
-import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
-import {IStandardExecutor, Execution} from "@source/interface/IStandardExecutor.sol";
-import {IHookManager} from "@source/interface/IHookManager.sol";
+import {IHook} from "../../contracts/interface/IHook.sol";
+import {UserOperation} from "../../contracts/interface/account-abstraction-v0.6.0/UserOperation.sol";
+import {IStandardExecutor, Execution} from "../../contracts/interface/IStandardExecutor.sol";
+import {IHookManager} from "../../contracts/interface/IHookManager.sol";
 
 /**
  * @dev DemoHook is a simple example of a hook that can be used to block any transfers over 1 ETH.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IModule} from "@source/interface/IModule.sol";
+import {IModule} from "../../contracts/interface/IModule.sol";
 
 contract DemoModule is IModule {
     event InitCalled(bytes data);

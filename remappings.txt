@@ -1,3 +1,0 @@
-@account-abstraction/=lib/account-abstraction/
-@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
-@source/=contracts/

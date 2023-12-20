@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import {console2, Test} from "forge-std/Test.sol";
 
-import {UserOperation} from "@source/interface/IAccount.sol";
-import {IValidator} from "@source/interface/IValidator.sol";
-import {CallDataPack} from "@source/utils/CallDataPack.sol";
+import {UserOperation} from "../contracts/interface/IAccount.sol";
+import {IValidator} from "../contracts/interface/IValidator.sol";
+import {CallDataPack} from "../contracts/utils/CallDataPack.sol";
 
 contract CalldataPackLib {
     function decodeBytes(bytes calldata data) public pure {
