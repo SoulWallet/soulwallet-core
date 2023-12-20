@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {IHook} from "../../contracts/interface/IHook.sol";
-import {UserOperation} from "../../lib/account-abstraction/contracts/interfaces/UserOperation.sol";
+import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
 import {IStandardExecutor, Execution} from "../../contracts/interface/IStandardExecutor.sol";
 import {IHookManager} from "../../contracts/interface/IHookManager.sol";
 

@@ -8,7 +8,7 @@ import {IPluggable} from "../interface/IPluggable.sol";
 import {IAccount, UserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
-import {IERC165} from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 import {HookManagerSnippet} from "../snippets/HookManager.sol";
 

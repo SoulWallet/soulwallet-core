@@ -9,7 +9,7 @@ import {Authority} from "./Authority.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SelectorLinkedList} from "../utils/SelectorLinkedList.sol";
 import {ModuleManagerSnippet} from "../snippets/ModuleManager.sol";
-import {IERC165} from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnippet {
     using AddressLinkedList for mapping(address => address);
