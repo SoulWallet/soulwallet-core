@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 import {IValidator} from "../interface/IValidator.sol";
 import {UserOperation} from "../interface/IAccount.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {ECDSA} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IOwnable} from "../interface/IOwnable.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../utils/Constants.sol";
 

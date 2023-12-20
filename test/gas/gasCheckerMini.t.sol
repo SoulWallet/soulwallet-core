@@ -3,13 +3,13 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import {ModularAccountWithBuildinEOAValidator} from "../../examples/ModularAccountWithBuildinEOAValidator.sol";
-import {Execution} from "@source/interface/IStandardExecutor.sol";
+import {Execution} from "../../contracts/interface/IStandardExecutor.sol";
 import {ReceiverHandler} from "../dev/ReceiverHandler.sol";
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {IEntryPoint} from "../../contracts/interface/account-abstraction-v0.6.0/IEntryPoint.sol";
 import {DeployEntryPoint} from "../dev/deployEntryPoint.sol";
 import {ProxyFactory} from "../dev/ProxyFactory.sol";
-import {UserOperation} from "@account-abstraction/contracts/interfaces/UserOperation.sol";
+import {UserOperation} from "../../contracts/interface/account-abstraction-v0.6.0/UserOperation.sol";
 import {TokenERC20} from "../dev/TokenERC20.sol";
 import {DemoHook} from "../dev/demoHook.sol";
 import {DemoModule} from "../dev/demoModule.sol";

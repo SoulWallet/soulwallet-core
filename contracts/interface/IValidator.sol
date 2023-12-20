@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {UserOperation} from "../interface/IAccount.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 interface IValidator is IERC165 {
     /*

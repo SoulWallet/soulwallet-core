@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {IEntryPoint} from "../../contracts/interface/account-abstraction-v0.6.0/IEntryPoint.sol";
 
 contract DeployEntryPoint {
     function deploy() public returns (IEntryPoint entryPoint) {

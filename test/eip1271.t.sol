@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {IOwnerManager} from "@source/interface/IOwnerManager.sol";
+import {IOwnerManager} from "../contracts/interface/IOwnerManager.sol";
 import {BasicModularAccount} from "../examples/BasicModularAccount.sol";
-import {Execution} from "@source/interface/IStandardExecutor.sol";
-import "@source/validators/EOAValidator.sol";
+import {Execution} from "../contracts/interface/IStandardExecutor.sol";
+import "../contracts/validators/EOAValidator.sol";
 import {ReceiverHandler} from "./dev/ReceiverHandler.sol";
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {MessageHashUtils} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {DeployEntryPoint} from "./dev/deployEntryPoint.sol";
 import {SoulWalletFactory} from "./dev/SoulWalletFactory.sol";
 import {DemoHook} from "./dev/demoHook.sol";

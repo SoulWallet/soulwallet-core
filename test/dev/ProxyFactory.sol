@@ -6,9 +6,9 @@ pragma solidity ^0.8.20;
 /* solhint-disable reason-string */
 
 import "../../examples/BasicModularAccount.sol";
-import "@openzeppelin/contracts/utils/Create2.sol";
-import "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../../lib/openzeppelin-contracts/contracts/utils/Create2.sol";
+import {IEntryPoint} from "../../contracts/interface/account-abstraction-v0.6.0/IEntryPoint.sol";
+import "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
  * @title ProxyFactory

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {AddressLinkedList} from "@source/utils/AddressLinkedList.sol";
-import {Bytes32LinkedList} from "@source/utils/Bytes32LinkedList.sol";
-import {SelectorLinkedList} from "@source/utils/SelectorLinkedList.sol";
+import {AddressLinkedList} from "../contracts/utils/AddressLinkedList.sol";
+import {Bytes32LinkedList} from "../contracts/utils/Bytes32LinkedList.sol";
+import {SelectorLinkedList} from "../contracts/utils/SelectorLinkedList.sol";
 
 contract LinkedListTest is Test {
     using AddressLinkedList for mapping(address => address);
