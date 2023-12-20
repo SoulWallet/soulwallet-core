@@ -8,7 +8,7 @@ pragma solidity ^0.8.20;
 import "./SoulWalletProxy.sol";
 import "../../examples/BasicModularAccount.sol";
 import "../../lib/openzeppelin-contracts/contracts/utils/Create2.sol";
-import {IEntryPoint} from "../../contracts/interface/account-abstraction-v0.6.0/IEntryPoint.sol";
+import {IEntryPoint} from "../../lib/account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
