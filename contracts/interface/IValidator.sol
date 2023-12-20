@@ -15,10 +15,11 @@ interface IValidator is IERC165 {
 
     /**
      * @dev EIP-1271 Should return whether the signature provided is valid for the provided data
+     * @param sender    Address of the message sender
      * @param hash      Hash of the data to be signed
      * @param validatorSignature Signature byte array associated with _data
      */
-    function validateSignature(bytes32 hash, bytes memory validatorSignature)
+    function validateSignature(address sender, bytes32 hash, bytes memory validatorSignature)
         external
         view
         returns (bytes4 magicValue);
