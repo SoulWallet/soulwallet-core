@@ -14,12 +14,14 @@ contract BasicModularAccount is SoulWalletCore {
 
     constructor(address _entryPoint) SoulWalletCore(_entryPoint) initializer {}
 
-    function initialize(bytes32 owner, address validator, address defaultFallback, address[] calldata modules)
-        external
-        initializer
-    {
+    function initialize(
+        bytes32 owner,
+        bytes calldata validatorAndData,
+        address defaultFallback,
+        address[] calldata modules
+    ) external initializer {
         _addOwner(owner);
-        _installValidator(validator);
+        _installValidator(address(bytes20(validatorAndData[:20])), validatorAndData[20:]);
         _setFallbackHandler(defaultFallback);
         for (uint256 i = 0; i < modules.length; i++) {
             _installModule(modules[i]);

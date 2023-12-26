@@ -21,6 +21,10 @@ contract EOAValidator is IValidator {
         return interfaceId == INTERFACE_ID_VALIDATOR;
     }
 
+    function Init(bytes calldata data) external pure override {}
+
+    function DeInit() external pure override {}
+
     function _packHash(bytes32 hash) internal view returns (bytes32) {
         /*
             must pack the hash with the chainId and the address of the wallet contract to prevent replay attacks

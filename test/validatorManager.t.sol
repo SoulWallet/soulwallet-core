@@ -43,7 +43,7 @@ contract ValidatorManagerTest is Test {
         bytes memory initializer;
         {
             bytes32 owner = bytes32(uint256(uint160(walletOwner)));
-            address defaultValidator = address(validator);
+            bytes memory defaultValidator = abi.encodePacked(address(validator));
             address defaultFallback = address(_fallback);
             initializer = abi.encodeWithSelector(
                 BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
@@ -122,21 +122,21 @@ contract ValidatorManagerTest is Test {
         assertEq(validators.length, 1);
 
         vm.expectRevert(CALLER_MUST_BE_SELF_OR_MODULE.selector);
-        wallet.installValidator(address(this));
+        wallet.installValidator(abi.encodePacked(address(this)));
 
         vm.startPrank(address(wallet));
         vm.expectRevert(INVALID_VALIDATOR.selector);
-        wallet.installValidator(address(this));
+        wallet.installValidator(abi.encodePacked(address(this)));
         vm.stopPrank();
 
         vm.startPrank(address(wallet));
         vm.expectRevert(ADDRESS_ALREADY_EXISTS.selector);
-        wallet.installValidator(address(validator));
+        wallet.installValidator(abi.encodePacked(address(validator)));
         vm.stopPrank();
 
         EOAValidator validator2 = new EOAValidator();
         vm.startPrank(address(wallet));
-        wallet.installValidator(address(validator2));
+        wallet.installValidator(abi.encodePacked(address(validator2)));
         validators = wallet.listValidator();
         assertEq(validators.length, 2);
         vm.stopPrank();
@@ -167,7 +167,7 @@ contract ValidatorManagerTest is Test {
 
         assertEq(wallet.validateUserOp(userOperation, userOpHash, 1), SIG_VALIDATION_FAILED);
         vm.startPrank(address(wallet));
-        wallet.installValidator(address(validator));
+        wallet.installValidator(abi.encodePacked(address(validator)));
         vm.stopPrank();
 
         vm.prank(address(entryPoint));
