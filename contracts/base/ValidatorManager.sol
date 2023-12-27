@@ -72,20 +72,12 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
     function _uninstallValidator(address validator) internal virtual override {
         AccountStorage.layout().validators.remove(validator);
         (bool success,) =
-            validator.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+            validator.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
         if (success) {
             emit ValidatorUninstalled(validator);
         } else {
             emit ValidatorUninstalledwithError(validator);
         }
-    }
-
-    /**
-     * @dev install a validator
-     */
-    function installValidator(bytes calldata validatorAndData) external virtual override {
-        validatorManagementAccess();
-        _installValidator(address(bytes20(validatorAndData[:20])), validatorAndData[20:]);
     }
 
     /**

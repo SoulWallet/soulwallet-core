@@ -4,7 +4,11 @@ pragma solidity ^0.8.20;
 import {SoulWalletCore} from "../../contracts/SoulWalletCore.sol";
 import {OwnerManager} from "./base/OwnerManager.sol";
 
-contract AddFunctionDemo is SoulWalletCore, OwnerManager {
+import {ModuleInstaller} from "../../contracts/extensions/ModuleInstaller.sol";
+import {HookInstaller} from "../../contracts/extensions/HookInstaller.sol";
+import {ValidatorInstaller} from "../../contracts/extensions/ValidatorInstaller.sol";
+
+contract AddFunctionDemo is SoulWalletCore, OwnerManager, ValidatorInstaller, HookInstaller, ModuleInstaller {
     uint256 private _initialized;
 
     modifier initializer() {
