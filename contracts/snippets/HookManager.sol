@@ -20,7 +20,7 @@ abstract contract HookManagerSnippet {
     /**
      * @dev Uninstall a hook
      *      1. revert if the hook is not installed
-     *      2. call hook.deInit() with 100k gas, emit HOOK_UNINSTALL_WITHERROR if the call failed
+     *      2. call hook.deInit() with 1M gas, emit HOOK_UNINSTALL_WITHERROR if the call failed
      * @param hookAddress The address of the hook
      */
     function _uninstallHook(address hookAddress) internal virtual;
