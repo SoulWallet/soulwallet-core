@@ -15,9 +15,9 @@ contract AddFunctionDemo is SoulWalletCore, OwnerManager {
 
     constructor(address _entryPoint) SoulWalletCore(_entryPoint) initializer {}
 
-    function initialize(bytes32 owner, address validator, address defaultFallback) external initializer {
+    function initialize(bytes32 owner, bytes calldata validatorAndData, address defaultFallback) external initializer {
         _addOwner(owner);
-        _installValidator(validator);
+        _installValidator(address(bytes20(validatorAndData[:20])), validatorAndData[20:]);
         _setFallbackHandler(defaultFallback);
     }
 }

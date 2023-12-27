@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {UserOperation} from "../interface/IAccount.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IPluggable} from "./IPluggable.sol";
 
-interface IValidator is IERC165 {
+interface IValidator is IPluggable {
     /*
         NOTE: Any implementation must ensure that the `validatorSignature` exactly matches your expectations, 
               otherwise, you will face security risks.

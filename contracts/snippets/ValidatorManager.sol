@@ -19,17 +19,12 @@ abstract contract ValidatorManagerSnippet {
     /**
      * @dev install a validator
      */
-    function _installValidator(address validator) internal virtual;
+    function _installValidator(address validator, bytes memory initData) internal virtual;
 
     /**
      * @dev uninstall a validator
      */
     function _uninstallValidator(address validator) internal virtual;
-
-    /**
-     * @dev reset validator
-     */
-    function _resetValidator(address validator) internal virtual;
 
     /**
      * @dev EIP-1271

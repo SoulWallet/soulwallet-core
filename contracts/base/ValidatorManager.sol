@@ -10,6 +10,7 @@ import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 import {ValidatorManagerSnippet} from "../snippets/ValidatorManager.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IPluggable} from "../interface/IPluggable.sol";
 
 abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerSnippet {
     using AddressLinkedList for mapping(address => address);
@@ -43,34 +44,48 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
     /**
      * @dev install a validator
      */
-    function _installValidator(address validator) internal virtual override {
+    function _installValidator(address validator, bytes memory initData) internal virtual override {
         if (_isSupportsValidatorInterface(validator) == false) {
             revert INVALID_VALIDATOR();
         }
-        AccountStorage.layout().validators.add(address(validator));
+
+        AccountStorage.layout().validators.add(validator);
+
+        bytes memory callData = abi.encodeWithSelector(IPluggable.Init.selector, initData);
+        bytes4 invalidValidatorSelector = INVALID_VALIDATOR.selector;
+        assembly ("memory-safe") {
+            // memorySafe: The scratch space between memory offset 0 and 64.
+
+            let result := call(gas(), validator, 0, add(callData, 0x20), mload(callData), 0x00, 0x00)
+            if iszero(result) {
+                mstore(0x00, invalidValidatorSelector)
+                revert(0x00, 4)
+            }
+        }
+
+        emit ValidatorInstalled(validator);
     }
 
     /**
      * @dev uninstall a validator
      */
     function _uninstallValidator(address validator) internal virtual override {
-        AccountStorage.layout().validators.remove(address(validator));
-    }
-
-    /**
-     * @dev reset validator
-     */
-    function _resetValidator(address validator) internal virtual override {
-        AccountStorage.layout().validators.clear();
-        _installValidator(validator);
+        AccountStorage.layout().validators.remove(validator);
+        (bool success,) =
+            validator.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+        if (success) {
+            emit ValidatorUninstalled(validator);
+        } else {
+            emit ValidatorUninstalledwithError(validator);
+        }
     }
 
     /**
      * @dev install a validator
      */
-    function installValidator(address validator) external virtual override {
+    function installValidator(bytes calldata validatorAndData) external virtual override {
         validatorManagementAccess();
-        _installValidator(validator);
+        _installValidator(address(bytes20(validatorAndData[:20])), validatorAndData[20:]);
     }
 
     /**

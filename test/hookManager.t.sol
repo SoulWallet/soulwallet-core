@@ -50,7 +50,7 @@ contract HookManagerTest is Test {
         bytes memory initializer;
         {
             bytes32 owner = bytes32(uint256(uint160(walletOwner)));
-            address defaultValidator = address(validator);
+            bytes memory defaultValidator = abi.encodePacked(address(validator));
             address defaultFallback = address(_fallback);
             initializer = abi.encodeWithSelector(
                 BasicModularAccount.initialize.selector, owner, defaultValidator, defaultFallback
