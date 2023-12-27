@@ -20,7 +20,6 @@ interface IHookManager {
      */
     event HookUninstalledwithError(address hook);
 
-    function installHook(bytes calldata hookAndData, uint8 capabilityFlags) external;
     function uninstallHook(address hookAddress) external;
 
     function isInstalledHook(address hook) external view returns (bool);

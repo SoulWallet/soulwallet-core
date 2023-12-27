@@ -108,16 +108,6 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
     }
 
     /**
-     * @dev install a module
-     * @param moduleAndData [0:20]: module address, [20:]: module init data
-     * @param selectors function selectors that the module is allowed to call
-     */
-    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external virtual override {
-        pluginManagementAccess();
-        _installModule(address(bytes20(moduleAndData[:20])), moduleAndData[20:], selectors);
-    }
-
-    /**
      * @dev uninstall a module
      * @param moduleAddress module address
      */
@@ -126,7 +116,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         modules.remove(moduleAddress);
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();
         (bool success,) =
-            moduleAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+            moduleAddress.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
         if (success) {
             emit ModuleUninstalled(moduleAddress);
         } else {

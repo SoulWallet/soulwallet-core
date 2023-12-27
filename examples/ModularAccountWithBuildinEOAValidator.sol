@@ -8,6 +8,11 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {OwnerManagerSnippet} from "../contracts/snippets/OwnerManager.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "../contracts/utils/Constants.sol";
+import {ModuleInstaller} from "../contracts/extensions/ModuleInstaller.sol";
+import {HookInstaller} from "../contracts/extensions/HookInstaller.sol";
+import {ValidatorInstaller} from "../contracts/extensions/ValidatorInstaller.sol";
+import {ValidatorManager} from "../contracts/base/ValidatorManager.sol";
+import {ValidatorManagerSnippet} from "../contracts/snippets/ValidatorManager.sol";
 
 abstract contract BuildinEOAValidator is OwnerManagerSnippet {
     using ECDSA for bytes32;
@@ -65,7 +70,13 @@ abstract contract BuildinEOAValidator is OwnerManagerSnippet {
     }
 }
 
-contract ModularAccountWithBuildinEOAValidator is SoulWalletCore, BuildinEOAValidator {
+contract ModularAccountWithBuildinEOAValidator is
+    ValidatorInstaller,
+    HookInstaller,
+    ModuleInstaller,
+    SoulWalletCore,
+    BuildinEOAValidator
+{
     uint256 private _initialized;
 
     modifier initializer() {
@@ -90,7 +101,7 @@ contract ModularAccountWithBuildinEOAValidator is SoulWalletCore, BuildinEOAVali
     function _isValidSignature(bytes32 hash, address validator, bytes calldata validatorSignature)
         internal
         view
-        override
+        override(ValidatorManagerSnippet, ValidatorManager)
         returns (bytes4 magicValue)
     {
         if (validator == address(0)) {
@@ -112,7 +123,7 @@ contract ModularAccountWithBuildinEOAValidator is SoulWalletCore, BuildinEOAVali
         bytes32 userOpHash,
         address validator,
         bytes calldata validatorSignature
-    ) internal override returns (uint256 validationData) {
+    ) internal override(ValidatorManagerSnippet, ValidatorManager) returns (uint256 validationData) {
         if (validator == address(0)) {
             return __validateUserOp(userOp, userOpHash, validatorSignature);
         }

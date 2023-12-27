@@ -22,8 +22,6 @@ interface IValidatorManager {
      */
     event ValidatorUninstalledwithError(address validator);
 
-    function installValidator(bytes calldata validatorAndData) external;
-
     function uninstallValidator(address validator) external;
 
     function listValidator() external view returns (address[] memory validators);

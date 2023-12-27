@@ -109,23 +109,13 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
         }
 
         (bool success,) =
-            hookAddress.call{gas: 100000 /* max to 100k gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
+            hookAddress.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
 
         if (success) {
             emit HookUninstalled(hookAddress);
         } else {
             emit HookUninstalledwithError(hookAddress);
         }
-    }
-
-    /**
-     * @dev Install a hook
-     * @param hookAndData [0:20]: hook address, [20:]: hook data
-     * @param capabilityFlags Capability flags for the hook
-     */
-    function installHook(bytes calldata hookAndData, uint8 capabilityFlags) external virtual override {
-        pluginManagementAccess();
-        _installHook(address(bytes20(hookAndData[:20])), hookAndData[20:], capabilityFlags);
     }
 
     /**

@@ -2,8 +2,11 @@
 pragma solidity ^0.8.20;
 
 import {BasicModularAccount} from "./BasicModularAccount.sol";
+import {ModuleInstaller} from "../contracts/extensions/ModuleInstaller.sol";
+import {HookInstaller} from "../contracts/extensions/HookInstaller.sol";
+import {ValidatorInstaller} from "../contracts/extensions/ValidatorInstaller.sol";
 
-contract UpgradableModularAccount is BasicModularAccount {
+contract UpgradableModularAccount is BasicModularAccount, ValidatorInstaller, HookInstaller, ModuleInstaller {
     //
     event Upgraded(address indexed oldImplementation, address indexed newImplementation);
 

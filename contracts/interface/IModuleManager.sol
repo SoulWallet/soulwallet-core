@@ -20,7 +20,6 @@ interface IModuleManager {
      */
     event ModuleUninstalledwithError(address module);
 
-    function installModule(bytes calldata moduleAndData, bytes4[] calldata selectors) external;
     function uninstallModule(address moduleAddress) external;
 
     function isInstalledModule(address module) external view returns (bool);
