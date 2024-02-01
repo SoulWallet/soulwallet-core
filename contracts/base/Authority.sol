@@ -66,6 +66,7 @@ abstract contract Authority is AuthoritySnippet {
      * @dev Check if access to the following functions:
      *      1. execute
      *      2. executeBatch
+     *      3. executeUserOp
      */
     function executorAccess() internal view virtual override {
         _onlyEntryPoint();
