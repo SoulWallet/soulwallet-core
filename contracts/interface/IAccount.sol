@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 // refer: https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/interfaces/IAccount.sol
 
-import "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
+import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 
 interface IAccount {
     /**
