@@ -7,6 +7,7 @@ import {FallbackManager} from "./base/FallbackManager.sol";
 import {ModuleManager} from "./base/ModuleManager.sol";
 import {OwnerManager} from "./base/OwnerManager.sol";
 import {StandardExecutor} from "./base/StandardExecutor.sol";
+import {AccountExecute} from "./base/AccountExecute.sol";
 import {ValidatorManager} from "./base/ValidatorManager.sol";
 import {HookManager} from "./base/HookManager.sol";
 import {SignatureDecoder} from "./utils/SignatureDecoder.sol";
@@ -21,6 +22,7 @@ contract SoulWalletCore is
     ModuleManager,
     HookManager,
     StandardExecutor,
+    AccountExecute,
     ValidatorManager,
     FallbackManager
 {
