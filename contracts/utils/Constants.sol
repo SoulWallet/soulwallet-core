@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 //return value in case of signature failure, with no time-range.
 // equivalent to _packValidationData(true,0,0);

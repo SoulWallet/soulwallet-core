@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface IFallbackManager {
     /**
@@ -14,6 +14,5 @@ interface IFallbackManager {
      * all calls made to this contract that do not match any other function
      * @param fallbackContract The address of the fallback contract to be set
      */
-
     function setFallbackHandler(address fallbackContract) external;
 }
