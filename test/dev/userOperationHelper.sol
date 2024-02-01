@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 
 library UserOperationHelper {
-    function packAccountGasLimit(uint256 validationGasLimit, uint256 callGasLimit) internal pure returns (bytes32) {
-        return bytes32((validationGasLimit << 128) | callGasLimit);
+    function packUints(uint256 high128, uint256 low128) internal pure returns (bytes32) {
+        require(high128 <= type(uint128).max, "high128 overflow");
+        require(low128 <= type(uint128).max, "low128 overflow");
+        return bytes32((high128 << 128) | low128);
+    }
+
+    function unpackUints(bytes32 packed) internal pure returns (uint256 high128, uint256 low128) {
+        return (uint128(bytes16(packed)), uint128(uint256(packed)));
     }
 
     function packPaymasterStaticFields(
@@ -36,22 +42,13 @@ library UserOperationHelper {
             nonce,
             initCode,
             callData,
-            packAccountGasLimit(verificationGasLimit, callGasLimit),
+            packUints(verificationGasLimit, callGasLimit),
             preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
+            packUints(maxPriorityFeePerGas, maxFeePerGas),
             paymasterAndData,
             signature
         );
         return userOperation;
-    }
-
-    function unpackAccountGasLimits(bytes32 accountGasLimits)
-        internal
-        pure
-        returns (uint256 validationGasLimit, uint256 callGasLimit)
-    {
-        return (uint128(bytes16(accountGasLimits)), uint128(uint256(accountGasLimits)));
     }
 
     function unpackPaymasterStaticFields(bytes memory paymasterAndData)
@@ -70,7 +67,9 @@ library UserOperationHelper {
     }
 
     function getRequiredPrefund(PackedUserOperation memory mUserOp) internal pure returns (uint256 requiredPrefund) {
-        (uint256 verificationGasLimit, uint256 callGasLimit) = unpackAccountGasLimits(mUserOp.accountGasLimits);
+        (uint256 verificationGasLimit, uint256 callGasLimit) = unpackUints(mUserOp.accountGasLimits);
+        (uint256 maxPriorityFeePerGas, uint256 maxFeePerGas) = unpackUints(mUserOp.gasFees);
+        (maxPriorityFeePerGas);
         uint256 paymasterVerificationGasLimit = 0;
         uint256 paymasterPostOpGasLimit = 0;
         if (mUserOp.paymasterAndData.length > 0) {
@@ -82,7 +81,7 @@ library UserOperationHelper {
             uint256 requiredGas = verificationGasLimit + callGasLimit + paymasterVerificationGasLimit
                 + paymasterPostOpGasLimit + mUserOp.preVerificationGas;
 
-            requiredPrefund = requiredGas * mUserOp.maxFeePerGas;
+            requiredPrefund = requiredGas * maxFeePerGas;
         }
     }
 }

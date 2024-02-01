@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {PackedUserOperation} from "../interface/IAccount.sol";
 
@@ -13,10 +13,9 @@ library UserOperationLib {
          offset: 0x60   00000000000000000000000000000000000000000000000000000000000001a0 # callData offset
          offset: 0x80   000000000000000000000000000000000000000000000000000e0e0e0e0e0e0e # accountGasLimits
          offset: 0xa0   0000000000000000000000000000000000000000000000000010101010101010 # preVerificationGas
-         offset: 0xc0   0000000000000000000000000000000000000000000000000011111111111111 # maxFeePerGas
-         offset: 0xe0   0000000000000000000000000000000000000000000000000012121212121212 # maxPriorityFeePerGas
-         offset:0x100   00000000000000000000000000000000000000000000000000000000000001e0 # paymasterAndData offset
-         offset:0x120   0000000000000000000000000000000000000000000000000000000000000220 # signature offset
+         offset: 0xc0   0000000000000000000000000000000000000000000000000011111111111111 # maxPriorityFeePerGas & maxFeePerGas
+         offset: 0xe0   00000000000000000000000000000000000000000000000000000000000001e0 # paymasterAndData offset
+         offset:0x100   0000000000000000000000000000000000000000000000000000000000000220 # signature offset
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ──┐
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   │ dynamic data
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   │
@@ -25,7 +24,7 @@ library UserOperationLib {
     function getSignature(PackedUserOperation calldata userOp) internal pure returns (bytes calldata signature) {
         assembly ("memory-safe") {
             let userOpOffset := userOp
-            let signatureOffset := add(userOpOffset, calldataload(add(userOpOffset, 0x120)))
+            let signatureOffset := add(userOpOffset, calldataload(add(userOpOffset, 0x100)))
             signature.length := calldataload(signatureOffset)
             signature.offset := add(signatureOffset, 0x20)
         }
