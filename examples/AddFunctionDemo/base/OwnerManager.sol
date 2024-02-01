@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {IOwnerManager} from "../interface/IOwnerManager.sol";
 import {AuthoritySnippet} from "../../../contracts/snippets/Authority.sol";

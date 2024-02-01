@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {AuthoritySnippet} from "../snippets/Authority.sol";
 import {HookManagerSnippet} from "../snippets/HookManager.sol";

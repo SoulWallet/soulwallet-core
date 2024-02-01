@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {SoulWalletCore} from "../../contracts/SoulWalletCore.sol";
 import {OwnerManager} from "./base/OwnerManager.sol";

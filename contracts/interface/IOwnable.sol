@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface IOwnable {
     /**
@@ -7,6 +7,5 @@ interface IOwnable {
      * @param owner The bytes32 ID to check
      * @return True if the ID corresponds to an owner, false otherwise
      */
-
     function isOwner(bytes32 owner) external view returns (bool);
 }
