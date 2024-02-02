@@ -17,6 +17,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
     using AddressLinkedList for mapping(address => address);
 
     error INVALID_VALIDATOR();
+    error VALIDATOR_ALREADY_EXISTS();
 
     bytes4 private constant INTERFACE_ID_VALIDATOR = type(IValidator).interfaceId;
 
@@ -46,6 +47,10 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
      * @dev install a validator
      */
     function _installValidator(address validator, bytes memory initData) internal virtual override {
+        if (_isInstalledValidator(validator)) {
+            revert VALIDATOR_ALREADY_EXISTS();
+        }
+
         if (_isSupportsValidatorInterface(validator) == false) {
             revert INVALID_VALIDATOR();
         }
@@ -71,6 +76,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
      * @dev uninstall a validator
      */
     function _uninstallValidator(address validator) internal virtual override {
+        // will revert if the validator is not installed
         AccountStorage.layout().validators.remove(validator);
         (bool success,) =
             validator.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));

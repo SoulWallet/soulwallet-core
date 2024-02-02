@@ -22,6 +22,7 @@ library UserOperationLib {
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ──┘
      */
     function getSignature(PackedUserOperation calldata userOp) internal pure returns (bytes calldata signature) {
+        // saves 121 gas
         assembly ("memory-safe") {
             let userOpOffset := userOp
             let signatureOffset := add(userOpOffset, calldataload(add(userOpOffset, 0x100)))

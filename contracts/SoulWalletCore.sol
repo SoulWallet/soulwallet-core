@@ -28,6 +28,11 @@ contract SoulWalletCore is
 {
     constructor(address _entryPoint) EntryPointManager(_entryPoint) {}
 
+    /**
+     * @dev EIP-1271
+     * @param hash      Hash of the data to be signed
+     * @param signature Signature byte array associated with _hash
+     */
     function isValidSignature(bytes32 hash, bytes calldata signature)
         public
         view
@@ -64,6 +69,12 @@ contract SoulWalletCore is
         return SignatureDecoder.signatureSplit(signature);
     }
 
+    /**
+     * Validate user's signature and nonce
+     * @param userOp The operation that is about to be executed.
+     * @param userOpHash Hash of the user's request data. can be used as the basis for signature.
+     * @param missingAccountFunds Missing funds on the account's deposit in the entrypoint.
+     */
     function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         public
         payable
