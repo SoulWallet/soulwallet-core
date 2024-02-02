@@ -11,6 +11,7 @@ import {SIG_VALIDATION_FAILED} from "../utils/Constants.sol";
 import {ValidatorManagerSnippet} from "../snippets/ValidatorManager.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IPluggable} from "../interface/IPluggable.sol";
+import {CallDataPack} from "../utils/CalldataPack.sol";
 
 abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorManagerSnippet {
     using AddressLinkedList for mapping(address => address);
@@ -140,9 +141,11 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
         if (_isInstalledValidator(validator) == false) {
             return SIG_VALIDATION_FAILED;
         }
-        bytes memory callData =
-            abi.encodeWithSelector(IValidator.validateUserOp.selector, userOp, userOpHash, validatorSignature);
 
+        // abi.encodeWithSelector(IValidator.validateUserOp.selector, userOp, userOpHash, validatorSignature);
+        bytes memory callData = CallDataPack.encodeWithoutUserOpSignature_validateUserOp_UserOperation_bytes32_bytes(
+            userOp, userOpHash, validatorSignature
+        );
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
 

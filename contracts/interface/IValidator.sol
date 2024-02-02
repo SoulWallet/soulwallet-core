@@ -26,7 +26,7 @@ interface IValidator is IPluggable {
 
     /**
      * @dev EIP-4337 validate PackedUserOperation
-     * NOTE: Do not rely on PackedUserOperation.signature, which may be empty in some versions of the implementation, see: https://github.com/SoulWallet/SoulWalletCore/blob/dc76bdb9a156d4f99ef41109c59ab99106c193ac/contracts/utils/CalldataPack.sol
+     * NOTE: Do not rely on PackedUserOperation.signature, which may be empty in some versions of the implementation, see: /contracts/utils/CalldataPack.sol
      * @param userOp the operation that is about to be executed.
      * @param userOpHash hash of the user's request data. can be used as the basis for signature.
      * @param validatorSignature Signature

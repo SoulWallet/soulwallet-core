@@ -24,7 +24,7 @@ interface IHook is IPluggable {
 
     /**
      * @dev Hook that is called before any userOp is executed.
-     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation. see: https://github.com/SoulWallet/SoulWalletCore/blob/dc76bdb9a156d4f99ef41109c59ab99106c193ac/contracts/utils/CalldataPack.sol
+     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation. see: /contracts/utils/CalldataPack.sol
      * must revert if the userOp is invalid.
      */
     function preUserOpValidationHook(
