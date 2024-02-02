@@ -17,6 +17,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
     error INVALID_MODULE();
+    error MOUDLE_ALREADY_EXISTS();
     error CALLER_MUST_BE_AUTHORIZED_MODULE();
 
     bytes4 private constant INTERFACE_ID_MODULE = type(IModule).interfaceId;
@@ -81,6 +82,10 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         virtual
         override
     {
+        if (_isInstalledModule(moduleAddress)) {
+            revert MOUDLE_ALREADY_EXISTS();
+        }
+
         if (_isSupportsModuleInterface(moduleAddress) == false) {
             revert INVALID_MODULE();
         }
@@ -113,6 +118,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
      */
     function _uninstallModule(address moduleAddress) internal virtual override {
         mapping(address => address) storage modules = _moduleMapping();
+        // will revert if the module is not installed
         modules.remove(moduleAddress);
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();
         (bool success,) =

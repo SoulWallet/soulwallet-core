@@ -18,6 +18,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
     error INVALID_HOOK();
     error INVALID_HOOK_TYPE();
     error HOOK_NOT_EXISTS();
+    error HOOK_ALREADY_EXISTS();
     error INVALID_HOOK_SIGNATURE();
 
     bytes4 private constant INTERFACE_ID_HOOK = type(IHook).interfaceId;
@@ -36,6 +37,13 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
      * @param hook The address of the hook
      */
     function isInstalledHook(address hook) external view override returns (bool) {
+        return _isInstalledHook(hook);
+    }
+
+    /**
+     * @dev checks whether a address is a installed hook
+     */
+    function _isInstalledHook(address hook) internal view virtual override returns (bool) {
         return AccountStorage.layout().preUserOpValidationHook.isExist(hook)
             || AccountStorage.layout().preIsValidSignatureHook.isExist(hook);
     }
@@ -66,6 +74,10 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
         virtual
         override
     {
+        if (_isInstalledHook(hookAddress)) {
+            revert HOOK_ALREADY_EXISTS();
+        }
+
         if (_isSupportsHookInterface(hookAddress) == false) {
             revert INVALID_HOOK();
         }
