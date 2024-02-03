@@ -74,6 +74,13 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
     /**
      * @dev install a module
+     *
+     * During the installation process of a module (even if the installation ultimately fails),
+     * the module retains all of its permissions. This allows the module to execute highly
+     * customized operations during the installation process, but it also comes with risks.
+     * To mitigate these risks, it is recommended that users only install modules that have
+     * been audited and are trusted.
+     *
      * @param moduleAddress module address
      * @param initData module init data
      * @param selectors function selectors that the module is allowed to call
