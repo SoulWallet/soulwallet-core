@@ -65,6 +65,13 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
 
     /**
      * @dev Install a hook
+     *
+     * During the installation process of a hook (even if the installation ultimately fails),
+     * the hook retains all of its permissions. This allows the hook to execute highly
+     * customized operations during the installation process, but it also comes with risks.
+     * To mitigate these risks, it is recommended that users only install hooks that have
+     * been audited and are trusted.
+     *
      * @param hookAddress The address of the hook
      * @param initData The init data of the hook
      * @param capabilityFlags Capability flags for the hook
