@@ -17,6 +17,7 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
     error INVALID_MODULE();
+    error MODULE_NOT_EXISTS();
     error MOUDLE_ALREADY_EXISTS();
     error CALLER_MUST_BE_AUTHORIZED_MODULE();
 
@@ -118,8 +119,9 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
      */
     function _uninstallModule(address moduleAddress) internal virtual override {
         mapping(address => address) storage modules = _moduleMapping();
-        // will revert if the module is not installed
-        modules.remove(moduleAddress);
+        if (!modules.tryRemove(moduleAddress)) {
+            revert MODULE_NOT_EXISTS();
+        }
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();
         (bool success,) =
             moduleAddress.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));
