@@ -168,7 +168,8 @@ contract HookManagerTest is Test {
 
         vm.startPrank(address(wallet));
         vm.expectRevert(INVALID_HOOK.selector);
-        wallet.installHook(abi.encodePacked(address(1)), 3);
+        // arbitrary data
+        wallet.installHook(abi.encodePacked(0xA00000000000000000000000000000000000000A), 3);
         vm.stopPrank();
 
         vm.startPrank(address(wallet));

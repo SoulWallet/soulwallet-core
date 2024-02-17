@@ -89,7 +89,7 @@ contract ValidatorManagerTest is Test {
     }
 
     error INVALID_VALIDATOR();
-    error ADDRESS_ALREADY_EXISTS();
+    error VALIDATOR_ALREADY_EXISTS();
 
     function test_Validator() public {
         address[] memory validators = wallet.listValidator();
@@ -104,7 +104,7 @@ contract ValidatorManagerTest is Test {
         vm.stopPrank();
 
         vm.startPrank(address(wallet));
-        vm.expectRevert(ADDRESS_ALREADY_EXISTS.selector);
+        vm.expectRevert(VALIDATOR_ALREADY_EXISTS.selector);
         wallet.installValidator(abi.encodePacked(address(validator)));
         vm.stopPrank();
 

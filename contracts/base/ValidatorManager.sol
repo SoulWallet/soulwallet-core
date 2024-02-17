@@ -38,7 +38,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_VALIDATOR);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
+            mstore(0x00, 0)
             let result := staticcall(gas(), validator, add(callData, 0x20), mload(callData), 0x00, 0x20)
             if gt(result, 0) { supported := mload(0x00) }
         }
@@ -126,7 +126,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
             abi.encodeWithSelector(IValidator.validateSignature.selector, msg.sender, hash, validatorSignature);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
+            mstore(0x00, 0)
             let result := staticcall(gas(), validator, add(callData, 0x20), mload(callData), 0x00, 0x20)
             if result { magicValue := mload(0x00) }
         }
@@ -156,7 +156,7 @@ abstract contract ValidatorManager is Authority, IValidatorManager, ValidatorMan
         );
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
+            mstore(0x00, 0)
             let result := call(gas(), validator, 0, add(callData, 0x20), mload(callData), 0x00, 0x20)
             if iszero(result) { mstore(0x00, SIG_VALIDATION_FAILED) }
             validationData := mload(0x00)
