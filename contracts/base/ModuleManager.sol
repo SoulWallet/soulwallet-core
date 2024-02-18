@@ -66,9 +66,8 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_MODULE);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-            mstore(0x00, 0)
             let result := staticcall(gas(), moduleAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if gt(result, 0) { supported := mload(0x00) }
+            if and(result, eq(returndatasize(), 32)) { supported := mload(0x00) }
         }
     }
 
