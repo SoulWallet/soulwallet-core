@@ -57,9 +57,8 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-            mstore(0x00, 0)
             let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if gt(result, 0) { supported := mload(0x00) }
+            if and(result, eq(returndatasize(), 32)) { supported := mload(0x00) }
         }
     }
 

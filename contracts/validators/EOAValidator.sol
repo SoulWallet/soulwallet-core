@@ -36,9 +36,11 @@ contract EOAValidator is IValidator {
         bytes memory callData = abi.encodeWithSelector(IOwnable.isOwner.selector, bytes32(uint256(uint160(addr))));
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-            mstore(0x00, 0)
             // IOwnable(msg.sender).isOwner(bytes32(uint256(uint160(addr)))) returns (bool result)
             let result := staticcall(gas(), caller(), add(callData, 0x20), mload(callData), 0x00, 0x20)
+            /*
+                Don't need to handle the scenario where `result=true` but the `returndata` is not returned as expected here.
+             */
             if result { isOwner := mload(0x00) }
         }
     }
