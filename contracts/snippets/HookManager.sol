@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 abstract contract HookManagerSnippet {
     /**
@@ -8,6 +8,11 @@ abstract contract HookManagerSnippet {
      * @param hookAddress hook address
      */
     function _isSupportsHookInterface(address hookAddress) internal view virtual returns (bool);
+
+    /**
+     * @dev checks whether a address is a installed hook
+     */
+    function _isInstalledHook(address hook) internal view virtual returns (bool);
 
     /**
      * @dev Install a hook

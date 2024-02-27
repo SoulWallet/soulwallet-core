@@ -1,26 +1,26 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
-import {UserOperation} from "../interface/IAccount.sol";
+import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IValidator} from "../interface/IValidator.sol";
 
 library CallDataPack {
     /**
-     * @dev Executing abi.encodeWithSelector with a custom function can save at least 1322 gas (when the signature length is 89), and the savings are even greater in cases where userOp contains a longer signature or hookData.
+     * @dev Executing abi.encodeWithSelector with a custom function can save at least 1623 gas (when the signature length is 89), and the savings are even greater in cases where userOp contains a longer signature or hookData.
      *
      * Benchmark: `forge test -vv --match-contract "CalldataPackTest" | grep 'gasDiff'`
      * Result:
-     * gasDiff_EOASignature: 1322
-     * gasDiff_es256: 1390
-     * gasDiff_es256 with 1k hookdata 1744
-     * gasDiff_es256 with 2k hookdata 2087
+     * gasDiff_EOASignature: 1623
+     * gasDiff_es256: 2239
+     * gasDiff_es256 with 1k hookdata 7284
+     * gasDiff_es256 with 2k hookdata 12371
      *
      * Whether to remove userOp.signature from calldata depends on the position of userOp.signature
      * If userOp.signature is not the last field, it will be included in the encoded result
      * If userOp.signature is the last field, it will not be included in the encoded result
      */
     function encodeWithoutUserOpSignature_validateUserOp_UserOperation_bytes32_bytes(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 userOpHash,
         bytes calldata validatorSignature
     ) internal pure returns (bytes memory callData) {
@@ -37,11 +37,9 @@ library CallDataPack {
                 uint256 nonce;
                 bytes initCode;
                 bytes callData;
-                uint256 callGasLimit;
-                uint256 verificationGasLimit;
+                bytes32 accountGasLimits;
                 uint256 preVerificationGas;
-                uint256 maxFeePerGas;
-                uint256 maxPriorityFeePerGas;
+                bytes32 maxPriorityFeePerGas & maxFeePerGas;
                 bytes paymasterAndData;
                 bytes signature;
             }
@@ -52,13 +50,11 @@ library CallDataPack {
          offset: 0x20   000000000000000000000000000000000000000000000000000b0b0b0b0b0b0b # nonce
          offset: 0x40   0000000000000000000000000000000000000000000000000000000000000160 # initCode offset
          offset: 0x60   00000000000000000000000000000000000000000000000000000000000001a0 # callData offset
-         offset: 0x80   000000000000000000000000000000000000000000000000000e0e0e0e0e0e0e # callGasLimit
-         offset: 0xa0   000000000000000000000000000000000000000000000000000f0f0f0f0f0f0f # verificationGasLimit
-         offset: 0xc0   0000000000000000000000000000000000000000000000000010101010101010 # preVerificationGas
-         offset: 0xe0   0000000000000000000000000000000000000000000000000011111111111111 # maxFeePerGas
-         offset:0x100   0000000000000000000000000000000000000000000000000012121212121212 # maxPriorityFeePerGas
-         offset:0x120   00000000000000000000000000000000000000000000000000000000000001e0 # paymasterAndData offset
-         offset:0x140   0000000000000000000000000000000000000000000000000000000000000220 # signature offset
+         offset: 0x80   000000000000000000000000000000000000000000000000000e0e0e0e0e0e0e # accountGasLimits
+         offset: 0xa0   0000000000000000000000000000000000000000000000000010101010101010 # preVerificationGas
+         offset: 0xc0   0000000000000000000000000000000000000000000000000011111111111111 # maxPriorityFeePerGas & maxFeePerGas
+         offset: 0xe0   00000000000000000000000000000000000000000000000000000000000001e0 # paymasterAndData offset
+         offset:0x100   0000000000000000000000000000000000000000000000000000000000000220 # signature offset
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ──┐
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   │ dynamic data
                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   │
@@ -77,7 +73,7 @@ library CallDataPack {
             assembly ("memory-safe") {
                 let userOpOffset := userOp
                 let _initCodeOffset := calldataload(add(userOpOffset, 0x40))
-                let _signatureOffset := calldataload(add(userOpOffset, 0x140))
+                let _signatureOffset := calldataload(add(userOpOffset, 0x100))
                 // if(_initCodeOffset >= _signatureOffset) { lastfield = 1 }
                 if iszero(lt(_initCodeOffset, _signatureOffset)) { lastfield := 1 }
 
@@ -85,7 +81,7 @@ library CallDataPack {
                 // if(_callDataOffset >= _signatureOffset) { lastfield = 1 }
                 if iszero(lt(_callDataOffset, _signatureOffset)) { lastfield := 1 }
 
-                let _paymasterAndDataOffset := calldataload(add(userOpOffset, 0x120))
+                let _paymasterAndDataOffset := calldataload(add(userOpOffset, 0xe0))
                 // if(_paymasterAndDataOffset >= _signatureOffset) { lastfield = 1 }
                 if iszero(lt(_paymasterAndDataOffset, _signatureOffset)) { lastfield := 1 }
             }
@@ -113,28 +109,21 @@ library CallDataPack {
                 000000000000000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ──┐
                 000000000000000000000000000000000000000000000000000b0b0b0b0b0b0b   │
                 0000000000000000000000000000000000000000000000000000000000000160   │
-                00000000000000000000000000000000000000000000000000000000000001a0   │
-                000000000000000000000000000000000000000000000000000e0e0e0e0e0e0e   │
                 000000000000000000000000000000000000000000000000000f0f0f0f0f0f0f   │
                 0000000000000000000000000000000000000000000000000010101010101010   │
                 0000000000000000000000000000000000000000000000000011111111111111   ├── userOp (signature length is 0)
                 0000000000000000000000000000000000000000000000000012121212121212   │
                 00000000000000000000000000000000000000000000000000000000000001e0   │
-                0000000000000000000000000000000000000000000000000000000000000220   │
-                0000000000000000000000000000000000000000000000000000000000000010   │
-                0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c00000000000000000000000000000000   │
-                0000000000000000000000000000000000000000000000000000000000000010   │
-                0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d00000000000000000000000000000000   │
-                000000000000000000000000000000000000000000000000000000000000000d   │
-                1313131313131313131313131300000000000000000000000000000000000000   │
-                0000000000000000000000000000000000000000000000000000000000000000 ──┴── (validatorSignature length is 0)
+                ...............                                                    │
+                ...............                                                    │
+                ...............                                                  ──┴── (validatorSignature length is 0)
                 0000000000000000000000000000000000000000000000000000000000000020 # validatorSignature length
                 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # validatorSignature
 
              */
             // Offset of userOp in calldata
             let userOpOffset := userOp
-            let _signatureOffset := calldataload(add(userOpOffset, 0x140))
+            let _signatureOffset := calldataload(add(userOpOffset, 0x100))
 
             /*
                 Length of userOp, excluding signature, but includes an additional 32bytes for recording the length of signature = 0

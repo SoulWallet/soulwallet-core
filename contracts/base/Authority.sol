@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {AuthoritySnippet} from "../snippets/Authority.sol";
 
@@ -66,6 +66,7 @@ abstract contract Authority is AuthoritySnippet {
      * @dev Check if access to the following functions:
      *      1. execute
      *      2. executeBatch
+     *      3. executeUserOp
      */
     function executorAccess() internal view virtual override {
         _onlyEntryPoint();

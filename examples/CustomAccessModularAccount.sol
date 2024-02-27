@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
 import {SoulWalletCore} from "../contracts/SoulWalletCore.sol";
 import {ModuleInstaller} from "../contracts/extensions/ModuleInstaller.sol";

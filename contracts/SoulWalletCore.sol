@@ -1,12 +1,13 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
-import {IAccount, UserOperation} from "./interface/IAccount.sol";
+import {IAccount, PackedUserOperation} from "./interface/IAccount.sol";
 import {EntryPointManager} from "./base/EntryPointManager.sol";
 import {FallbackManager} from "./base/FallbackManager.sol";
 import {ModuleManager} from "./base/ModuleManager.sol";
 import {OwnerManager} from "./base/OwnerManager.sol";
 import {StandardExecutor} from "./base/StandardExecutor.sol";
+import {AccountExecute} from "./base/AccountExecute.sol";
 import {ValidatorManager} from "./base/ValidatorManager.sol";
 import {HookManager} from "./base/HookManager.sol";
 import {SignatureDecoder} from "./utils/SignatureDecoder.sol";
@@ -21,11 +22,17 @@ contract SoulWalletCore is
     ModuleManager,
     HookManager,
     StandardExecutor,
+    AccountExecute,
     ValidatorManager,
     FallbackManager
 {
     constructor(address _entryPoint) EntryPointManager(_entryPoint) {}
 
+    /**
+     * @dev EIP-1271
+     * @param hash      Hash of the data to be signed
+     * @param signature Signature byte array associated with _hash
+     */
     function isValidSignature(bytes32 hash, bytes calldata signature)
         public
         view
@@ -62,7 +69,13 @@ contract SoulWalletCore is
         return SignatureDecoder.signatureSplit(signature);
     }
 
-    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
+    /**
+     * Validate user's signature and nonce
+     * @param userOp The operation that is about to be executed.
+     * @param userOpHash Hash of the user's request data. can be used as the basis for signature.
+     * @param missingAccountFunds Missing funds on the account's deposit in the entrypoint.
+     */
+    function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
         public
         payable
         virtual

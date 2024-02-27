@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
 import {IValidator} from "../interface/IValidator.sol";
-import {UserOperation} from "../interface/IAccount.sol";
+import {PackedUserOperation} from "../interface/IAccount.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IOwnable} from "../interface/IOwnable.sol";
@@ -36,9 +36,11 @@ contract EOAValidator is IValidator {
         bytes memory callData = abi.encodeWithSelector(IOwnable.isOwner.selector, bytes32(uint256(uint160(addr))));
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
             // IOwnable(msg.sender).isOwner(bytes32(uint256(uint160(addr)))) returns (bool result)
             let result := staticcall(gas(), caller(), add(callData, 0x20), mload(callData), 0x00, 0x20)
+            /*
+                Don't need to handle the scenario where `result=true` but the `returndata` is not returned as expected here.
+             */
             if result { isOwner := mload(0x00) }
         }
     }
@@ -65,7 +67,7 @@ contract EOAValidator is IValidator {
         return _isOwner(recoveredAddr) ? MAGICVALUE : bytes4(0);
     }
 
-    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+    function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         external
         view
         override

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
 import {IModule} from "../interface/IModule.sol";
 import {IPluggable} from "../interface/IPluggable.sol";
@@ -17,6 +17,8 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
 
     error MODULE_EXECUTE_FROM_MODULE_RECURSIVE();
     error INVALID_MODULE();
+    error MODULE_NOT_EXISTS();
+    error MOUDLE_ALREADY_EXISTS();
     error CALLER_MUST_BE_AUTHORIZED_MODULE();
 
     bytes4 private constant INTERFACE_ID_MODULE = type(IModule).interfaceId;
@@ -64,14 +66,20 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_MODULE);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
             let result := staticcall(gas(), moduleAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if gt(result, 0) { supported := mload(0x00) }
+            if and(result, eq(returndatasize(), 32)) { supported := mload(0x00) }
         }
     }
 
     /**
      * @dev install a module
+     *
+     * During the installation process of a module (even if the installation ultimately fails),
+     * the module retains all of its permissions. This allows the module to execute highly
+     * customized operations during the installation process, but it also comes with risks.
+     * To mitigate these risks, it is recommended that users only install modules that have
+     * been audited and are trusted.
+     *
      * @param moduleAddress module address
      * @param initData module init data
      * @param selectors function selectors that the module is allowed to call
@@ -81,6 +89,10 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
         virtual
         override
     {
+        if (_isInstalledModule(moduleAddress)) {
+            revert MOUDLE_ALREADY_EXISTS();
+        }
+
         if (_isSupportsModuleInterface(moduleAddress) == false) {
             revert INVALID_MODULE();
         }
@@ -113,7 +125,9 @@ abstract contract ModuleManager is IModuleManager, Authority, ModuleManagerSnipp
      */
     function _uninstallModule(address moduleAddress) internal virtual override {
         mapping(address => address) storage modules = _moduleMapping();
-        modules.remove(moduleAddress);
+        if (!modules.tryRemove(moduleAddress)) {
+            revert MODULE_NOT_EXISTS();
+        }
         AccountStorage.layout().moduleSelectors[moduleAddress].clear();
         (bool success,) =
             moduleAddress.call{gas: 1000000 /* max to 1M gas */ }(abi.encodeWithSelector(IPluggable.DeInit.selector));

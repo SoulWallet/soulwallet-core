@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
 import {Authority} from "./Authority.sol";
 import {IHookManager} from "../interface/IHookManager.sol";
 import {IHook} from "../interface/IHook.sol";
 import {IPluggable} from "../interface/IPluggable.sol";
-import {IAccount, UserOperation} from "../interface/IAccount.sol";
+import {IAccount, PackedUserOperation} from "../interface/IAccount.sol";
 import {AccountStorage} from "../utils/AccountStorage.sol";
 import {AddressLinkedList} from "../utils/AddressLinkedList.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
@@ -18,6 +18,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
     error INVALID_HOOK();
     error INVALID_HOOK_TYPE();
     error HOOK_NOT_EXISTS();
+    error HOOK_ALREADY_EXISTS();
     error INVALID_HOOK_SIGNATURE();
 
     bytes4 private constant INTERFACE_ID_HOOK = type(IHook).interfaceId;
@@ -36,6 +37,13 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
      * @param hook The address of the hook
      */
     function isInstalledHook(address hook) external view override returns (bool) {
+        return _isInstalledHook(hook);
+    }
+
+    /**
+     * @dev checks whether a address is a installed hook
+     */
+    function _isInstalledHook(address hook) internal view virtual override returns (bool) {
         return AccountStorage.layout().preUserOpValidationHook.isExist(hook)
             || AccountStorage.layout().preIsValidSignatureHook.isExist(hook);
     }
@@ -49,14 +57,20 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
         bytes memory callData = abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_ID_HOOK);
         assembly ("memory-safe") {
             // memorySafe: The scratch space between memory offset 0 and 64.
-
             let result := staticcall(gas(), hookAddress, add(callData, 0x20), mload(callData), 0x00, 0x20)
-            if gt(result, 0) { supported := mload(0x00) }
+            if and(result, eq(returndatasize(), 32)) { supported := mload(0x00) }
         }
     }
 
     /**
      * @dev Install a hook
+     *
+     * During the installation process of a hook (even if the installation ultimately fails),
+     * the hook retains all of its permissions. This allows the hook to execute highly
+     * customized operations during the installation process, but it also comes with risks.
+     * To mitigate these risks, it is recommended that users only install hooks that have
+     * been audited and are trusted.
+     *
      * @param hookAddress The address of the hook
      * @param initData The init data of the hook
      * @param capabilityFlags Capability flags for the hook
@@ -66,6 +80,10 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
         virtual
         override
     {
+        if (_isInstalledHook(hookAddress)) {
+            revert HOOK_ALREADY_EXISTS();
+        }
+
         if (_isSupportsHookInterface(hookAddress) == false) {
             revert INVALID_HOOK();
         }
@@ -255,7 +273,7 @@ abstract contract HookManager is Authority, IHookManager, HookManagerSnippet {
      * @param hookSignatures The hook signatures
      */
     function _preUserOpValidationHook(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 missingAccountFunds,
         bytes calldata hookSignatures

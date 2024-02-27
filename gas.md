@@ -2,8 +2,8 @@
 
 | Name | Gas Used |
 | ---- | -------- |
-| ERC20 batch transfer | 46810 |
-| ETH batch transfer | 56558 |
-| Deploy Account | 360863 |
-| ERC20 transfer | 91855 |
-| ETH transfer | 103380 |
+| ERC20 batch transfer | 45801 |
+| ETH batch transfer | 55552 |
+| Deploy Account | 357696 |
+| ERC20 transfer | 88831 |
+| ETH transfer | 100358 |

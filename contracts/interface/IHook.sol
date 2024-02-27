@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.23;
 
-import {UserOperation} from "../interface/IAccount.sol";
+import {PackedUserOperation} from "../interface/IAccount.sol";
 import {IPluggable} from "./IPluggable.sol";
 
 interface IHook is IPluggable {
@@ -24,11 +24,11 @@ interface IHook is IPluggable {
 
     /**
      * @dev Hook that is called before any userOp is executed.
-     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation. see: contract/utils/CalldataPack.sol
+     * NOTE: Do not rely on userOperation.signature, which may be empty in some versions of the implementation. see: /contracts/utils/CalldataPack.sol
      * must revert if the userOp is invalid.
      */
     function preUserOpValidationHook(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 missingAccountFunds,
         bytes calldata hookSignature

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.23;
 
 /**
  * @title Address Linked List
@@ -47,7 +47,6 @@ library AddressLinkedList {
      * @param self The linked list mapping.
      * @param addr The address to be removed.
      */
-
     function remove(mapping(address => address) storage self, address addr) internal {
         if (!tryRemove(self, addr)) {
             revert ADDRESS_NOT_EXISTS();

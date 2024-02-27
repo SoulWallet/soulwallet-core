@@ -3,26 +3,56 @@ pragma solidity ^0.8.20;
 
 import {console2, Test} from "forge-std/Test.sol";
 
-import {UserOperation} from "../contracts/interface/IAccount.sol";
+import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IValidator} from "../contracts/interface/IValidator.sol";
 import {CallDataPack} from "../contracts/utils/CallDataPack.sol";
+import {UserOperationHelper} from "./dev/userOperationHelper.sol";
+
+contract ValidatorHelper {
+    PackedUserOperation _userOp;
+    bytes32 _userOpHash;
+    bytes _validatorSignature;
+
+    constructor(PackedUserOperation memory userOp, bytes32 userOpHash, bytes memory validatorSignature) {
+        _userOp = userOp;
+        _userOpHash = userOpHash;
+        _validatorSignature = validatorSignature;
+    }
+
+    function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+        external
+        view
+    {
+        require(userOp.sender == _userOp.sender, "sender not match");
+        require(userOp.nonce == _userOp.nonce, "nonce not match");
+        require(keccak256(userOp.initCode) == keccak256(_userOp.initCode), "initCode not match");
+        require(keccak256(userOp.callData) == keccak256(_userOp.callData), "callData not match");
+        require(userOp.accountGasLimits == _userOp.accountGasLimits, "accountGasLimits not match");
+        require(userOp.preVerificationGas == _userOp.preVerificationGas, "preVerificationGas not match");
+        require(userOp.gasFees == _userOp.gasFees, "gasFees not match");
+        require(keccak256(userOp.paymasterAndData) == keccak256(_userOp.paymasterAndData), "paymasterAndData not match");
+
+        require(userOpHash == _userOpHash, "userOpHash not match");
+        require(keccak256(validatorSignature) == keccak256(_validatorSignature), "validatorSignature not match");
+    }
+}
 
 contract CalldataPackLib {
     function decodeBytes(bytes calldata data) public pure {
         console2.log("========================== decodeBytes ==========================");
 
         /*
-            address sender;
-            uint256 nonce;
-            bytes initCode;
-            bytes callData;
-            uint256 callGasLimit;
-            uint256 verificationGasLimit;
-            uint256 preVerificationGas;
-            uint256 maxFeePerGas;
-            uint256 maxPriorityFeePerGas;
-            bytes paymasterAndData;
-            bytes signature;
+            struct UserOperation {
+                address sender;
+                uint256 nonce;
+                bytes initCode;
+                bytes callData;
+                bytes32 accountGasLimits;
+                uint256 preVerificationGas;
+                bytes32 gasFees;
+                bytes paymasterAndData;
+                bytes signature;
+            }
         */
         uint256 len = data.length / 32;
         for (uint256 i = 0; i < len; i++) {
@@ -30,12 +60,12 @@ contract CalldataPackLib {
         }
     }
 
-    function test_pack1(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+    function test_pack1(PackedUserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         public
         pure
         returns (bytes memory callData1, bytes memory callData2)
     {
-        UserOperation memory _userOp = userOp;
+        PackedUserOperation memory _userOp = userOp;
         _userOp.signature = "";
         callData1 = abi.encodeWithSelector(IValidator.validateUserOp.selector, _userOp, userOpHash, validatorSignature);
         callData2 = CallDataPack.encodeWithoutUserOpSignature_validateUserOp_UserOperation_bytes32_bytes(
@@ -43,18 +73,20 @@ contract CalldataPackLib {
         );
     }
 
-    function test_pack_1(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+    function test_pack_1(PackedUserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         public
         pure
+        returns (bytes memory)
     {
-        abi.encodeWithSelector(IValidator.validateUserOp.selector, userOp, userOpHash, validatorSignature);
+        return abi.encodeWithSelector(IValidator.validateUserOp.selector, userOp, userOpHash, validatorSignature);
     }
 
-    function test_pack_2(UserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
+    function test_pack_2(PackedUserOperation calldata userOp, bytes32 userOpHash, bytes calldata validatorSignature)
         public
         pure
+        returns (bytes memory)
     {
-        CallDataPack.encodeWithoutUserOpSignature_validateUserOp_UserOperation_bytes32_bytes(
+        return CallDataPack.encodeWithoutUserOpSignature_validateUserOp_UserOperation_bytes32_bytes(
             userOp, userOpHash, validatorSignature
         );
     }
@@ -67,28 +99,24 @@ contract CalldataPackTest is Test {
         _CalldataPackLib = new CalldataPackLib();
     }
 
-    function getUserOp() private pure returns (UserOperation memory) {
+    function getUserOp() private pure returns (PackedUserOperation memory) {
         address sender = address(0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa);
         uint256 nonce = 0x0b0b0b0b0b0b0b;
         bytes memory initCode = hex"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c";
         bytes memory callData = hex"0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d";
-        uint256 callGasLimit = 0x0e0e0e0e0e0e0e;
-        uint256 verificationGasLimit = 0x0f0f0f0f0f0f0f;
+        bytes32 accountGasLimits = 0x0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f;
         uint256 preVerificationGas = 0x10101010101010;
-        uint256 maxFeePerGas = 0x11111111111111;
-        uint256 maxPriorityFeePerGas = 0x12121212121212;
+        bytes32 gasFees = 0x1111111111111111111111111111111111111111111111111111111111111111;
         bytes memory paymasterAndData = hex"13131313131313131313131313";
         bytes memory signature = hex"14141414141414141414141414";
-        UserOperation memory userOperation = UserOperation(
+        PackedUserOperation memory userOperation = PackedUserOperation(
             sender,
             nonce,
             initCode,
             callData,
-            callGasLimit,
-            verificationGasLimit,
+            accountGasLimits,
             preVerificationGas,
-            maxFeePerGas,
-            maxPriorityFeePerGas,
+            gasFees,
             paymasterAndData,
             signature
         );
@@ -97,7 +125,7 @@ contract CalldataPackTest is Test {
     }
 
     function test_pack1() public {
-        UserOperation memory userOp = getUserOp();
+        PackedUserOperation memory userOp = getUserOp();
         bytes32 userOpHash = hex"0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a";
         bytes memory validatorSignature = hex"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
@@ -115,7 +143,7 @@ contract CalldataPackTest is Test {
     }
 
     function test_gasCheck() public {
-        UserOperation memory userOp = getUserOp();
+        PackedUserOperation memory userOp = getUserOp();
         bytes32 userOpHash = hex"0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a";
         bytes memory validatorSignature =
             hex"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -129,17 +157,34 @@ contract CalldataPackTest is Test {
 
             vm.revertTo(snapshotId);
             uint256 gasBefore1 = gasleft();
-            _CalldataPackLib.test_pack_1(userOp, userOpHash, validatorSignature);
+            bytes memory _data1 = _CalldataPackLib.test_pack_1(userOp, userOpHash, validatorSignature);
             uint256 gasAfter1 = gasleft();
             uint256 gasCost1 = gasBefore1 - gasAfter1;
 
             vm.revertTo(snapshotId);
             uint256 gasBefore2 = gasleft();
-            _CalldataPackLib.test_pack_2(userOp, userOpHash, validatorSignature);
+            bytes memory _data2 = _CalldataPackLib.test_pack_2(userOp, userOpHash, validatorSignature);
             uint256 gasAfter2 = gasleft();
             uint256 gasCost2 = gasBefore2 - gasAfter2;
-
             uint256 gasDiff_EOASignature = gasCost1 - gasCost2;
+
+            {
+                ValidatorHelper validatorHelper = new ValidatorHelper(userOp, userOpHash, validatorSignature);
+                validatorHelper.validateUserOp(userOp, userOpHash, validatorSignature);
+                {
+                    address validatorHelperAddress = address(validatorHelper);
+                    assembly ("memory-safe") {
+                        let result :=
+                            staticcall(gas(), validatorHelperAddress, add(_data1, 0x20), mload(_data1), 0x00, 0x00)
+                        if iszero(result) { revert(0x00, 0x00) }
+                    }
+                    assembly ("memory-safe") {
+                        let result :=
+                            staticcall(gas(), validatorHelperAddress, add(_data2, 0x20), mload(_data2), 0x00, 0x00)
+                        if iszero(result) { revert(0x00, 0x00) }
+                    }
+                }
+            }
 
             console2.log("gasDiff_EOASignature:", gasDiff_EOASignature);
         }
